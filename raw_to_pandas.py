@@ -10,7 +10,7 @@ simple 1d array listing files which have structure errors and their data is
 unable to be included in the pandas file.
 
 @author: James Morrison
-
+@license: MIT
 """
 import numpy as np
 from datetime import datetime
