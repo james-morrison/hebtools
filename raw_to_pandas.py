@@ -18,7 +18,7 @@ import calendar
 import os
 import glob
 import pandas as pd
-folder_path = 'D:\\path\\to\\buoy_year_folder\\'
+folder_path = 'D:\\path_to_buoy_year_folder\\'
 dirs = os.listdir(folder_path)
     
 template = "%Y-%m-%dT%Hh%M"
@@ -38,7 +38,7 @@ def get_rounded_timestamps(file_name, raw_array_length):
     time_index = np.linspace(unix_timestamp, 
                              unix_timestamp + raw_array_length*time_interval - time_interval, 
                              raw_array_length)
-    time_index = [round(x*2.0)/2.0 for x in time_index]    
+    time_index = [round(x*10.0)/10.0 for x in time_index]    
     utc_timestamps = [str(datetime.utcfromtimestamp(x)) for x in time_index]
     return utc_timestamps
 
