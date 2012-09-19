@@ -24,24 +24,23 @@ import os
 import glob
 import pandas as pd
 from matplotlib.mlab import find
-folder_path = 'D:\\Roag\\December\\'
-dirs = os.listdir(folder_path)
-    
+
+folder_path = '/cm/shared/Datawell/Roag_Wavegen' 
+dirs = os.listdir(folder_path)    
 template = "%Y-%m-%dT%Hh%M"
 
 def _datacheck_peakdetect(x_axis, y_axis):
     if x_axis is None:
-        x_axis = range(len(y_axis))
+        x_axis = list(range(len(y_axis)))
     
     if len(y_axis) != len(x_axis):
-        raise (ValueError, 
-                'Input vectors y_axis and x_axis must have same length')
+        raise ValueError
     
     #needs to be a numpy array
     y_axis = np.array(y_axis)
     x_axis = np.array(x_axis)
     return x_axis, y_axis
-
+    
 def peakdetect(y_axis, x_axis = None, lookahead = 4, delta=0):
     """
     Converted from/based on a MATLAB script at: 
@@ -86,17 +85,17 @@ def peakdetect(y_axis, x_axis = None, lookahead = 4, delta=0):
     
     #perform some checks
     if lookahead < 1:
-        raise ValueError, "Lookahead must be '1' or above in value"
+        raise ValueError("Lookahead must be '1' or above in value")
     if not (np.isscalar(delta) and delta >= 0):
-        raise ValueError, "delta must be a positive number"
+        raise ValueError("delta must be a positive number")
     
     #maxima and minima candidates are temporarily stored in
     #mx and mn respectively
     mn, mx = np.Inf, -np.Inf
     
     #Only detect peak if there is 'lookahead' amount of points after it
-    for index, (x, y) in enumerate(zip(x_axis[:-lookahead], 
-                                        y_axis[:-lookahead])):
+    for index, (x, y) in enumerate(list(zip(x_axis[:-lookahead], 
+                                        y_axis[:-lookahead]))):
         if y > mx:
             mx = y
             mxpos = x
@@ -105,41 +104,46 @@ def peakdetect(y_axis, x_axis = None, lookahead = 4, delta=0):
             mnpos = x
         
         ####look for max####
-        if y < mx-delta and mx != np.Inf:
-            #Maxima peak candidate found
-            #look ahead in signal to ensure that this is a peak and not jitter
-            if y_axis[index:index+lookahead].max() < mx:
-                max_peaks.append([mxpos, mx])
-                dump.append(True)
-                #set algorithm to only find minima now
-                mx = np.Inf
-                mn = np.Inf
-                if index+lookahead >= length:
-                    #end is within lookahead no more peaks can be found
-                    break
-                continue
-            #else:  #slows shit down this does
-            #    mx = ahead
-            #    mxpos = x_axis[np.where(y_axis[index:index+lookahead]==mx)]
-        
-        ####look for min####
-        if y > mn+delta and mn != -np.Inf:
-            #Minima peak candidate found 
-            #look ahead in signal to ensure that this is a peak and not jitter
-            if y_axis[index:index+lookahead].min() > mn:
-                min_peaks.append([mnpos, mn])
-                dump.append(False)
-                #set algorithm to only find maxima now
-                mn = -np.Inf
-                mx = -np.Inf
-                if index+lookahead >= length:
-                    #end is within lookahead no more peaks can be found
-                    break
-            #else:  #slows shit down this does
-            #    mn = ahead
-            #    mnpos = x_axis[np.where(y_axis[index:index+lookahead]==mn)]
+        try:
+            if y < mx-delta and mx != np.Inf:
+                #Maxima peak candidate found
+                #look ahead in signal to ensure that this is a peak and not jitter
+                if y_axis[index:index+lookahead].max() < mx:
+                    max_peaks.append([mxpos, mx])
+                    dump.append(True)
+                    #set algorithm to only find minima now
+                    mx = np.Inf
+                    mn = np.Inf
+                    if index+lookahead >= length:
+                        #end is within lookahead no more peaks can be found
+                        break
+                    continue
+                #else:  #slows shit down this does
+                #    mx = ahead
+                #    mxpos = x_axis[np.where(y_axis[index:index+lookahead]==mx)]
+            
+            ####look for min####
+            if y > mn+delta and mn != -np.Inf:
+                #Minima peak candidate found 
+                #look ahead in signal to ensure that this is a peak and not jitter
+                if y_axis[index:index+lookahead].min() > mn:
+                    min_peaks.append([mnpos, mn])
+                    dump.append(False)
+                    #set algorithm to only find maxima now
+                    mn = -np.Inf
+                    mx = -np.Inf
+                    if index+lookahead >= length:
+                        #end is within lookahead no more peaks can be found
+                        break
+                #else:  #slows shit down this does
+                #    mn = ahead
+                #    mnpos = x_axis[np.where(y_axis[index:index+lookahead]==mn)]
     
-    
+        except TypeError:
+            print(type(y), y)
+            print(type(delta), delta)
+            print(type(mx), mx)
+            print(type(np.Inf), np.Inf)            
     #Remove the false hit on the first value of the y_axis
     try:
         if dump[0]:
@@ -167,12 +171,19 @@ def str_to_float(date_str):
     return datetime_to_float(date_time)    
     
 def get_zero_upcross_periods(raw_disp):
+    print("start get_zero_upcross_periods")
     """ Based on code from https://gist.github.com/255291"""
     timestamps = [str_to_float(x) for x in raw_disp.index]
+    #timestamps = [calendar.timegm(x.utctimetuple()) for x in raw_disp.index]
     heave = raw_disp['heave']
-    print heave
+    #print heave
+    #print timestamps
     indices = find((heave[1:]>=0)&(heave[:-1]<0))
+    np.save('zero_cross_indices',indices)
+    print "indices", type(indices)
+    print type(heave)
     crossings = [i - heave[i] / (heave[i+1] - heave[i]) for i in indices]
+    print "crossings", type(crossings)
     zero_crossing_timestamps = []
     for crossing in crossings:
         difference = timestamps[int(crossing)]-timestamps[int(crossing+1)]
@@ -183,26 +194,21 @@ def get_zero_upcross_periods(raw_disp):
     zero_crossing_timestamps = [datetime.utcfromtimestamp(x) for x in zero_crossing_timestamps]
     df = pd.DataFrame(zero_upcross_periods, index = zero_crossing_timestamps[:-1])
     df.save('zero_crossing_dataframe')
+    print("end get_zero_upcross_periods")
 
 def get_rounded_timestamps(file_name, raw_array_length):
     """ Takes the length of the raw file and based on the file name gives the
     start timestamp and the raw records are assumed to be sent every 0.78125 
     seconds or 1.28Hz, returns a list of UTC datetimes """
     date_time = datetime.strptime(file_name.split('}')[1][:-5], template)
-    time_interval = 0.78125
-    if raw_array_length == 2305:
-        """ Due to signals being sent more frequently than every second some 
-        half hour files contain one more record and a slightly shorter interval
-        (1800/2305) takes account of this """
-        time_interval = 0.7809110629
-    elif raw_array_length == 2303:
-        time_interval = 0.78158923143
+    time_interval = 1800/float(raw_array_length)
     unix_timestamp = calendar.timegm(date_time.timetuple())
     time_index = np.linspace(unix_timestamp, 
                              unix_timestamp + raw_array_length*time_interval - time_interval, 
                              raw_array_length)
     time_index = [round(x*10.0)/10.0 for x in time_index]    
     utc_timestamps = [str(datetime.utcfromtimestamp(x)) for x in time_index]
+    #utc_timestamps = [datetime.utcfromtimestamp(x) for x in time_index]
     return utc_timestamps
 
 def iterate_over_file_names(path):
@@ -210,20 +216,30 @@ def iterate_over_file_names(path):
     os.chdir(path)
     problem_files = []
     file_names = glob.glob('*.raw')
+    file_names.sort()
     big_raw_array = pd.DataFrame(columns = raw_cols)
     small_raw_array = pd.DataFrame(columns = raw_cols)
     for index, filepath in enumerate(file_names):
-        print filepath
+        #print filepath
         try:
-            raw_array = pd.io.parsers.read_csv(filepath,names=raw_cols)
+            raw_file = open(filepath)
+            raw_records = raw_file.readlines()
+            if len(raw_records) == 0:
+                continue
+            records = []
+            for record in raw_records:
+                record_list = record.split(',')
+                if len(record_list) == 4:
+                    records.append(record_list)
+            raw_array = pd.DataFrame(records,columns=raw_cols,dtype=np.int)
         except StopIteration:
-            print filepath, "StopIteration"
+            print(filepath, "StopIteration")
             problem_files.append(filepath)
             continue
         raw_file_length = len(raw_array)
-        print raw_file_length
+        #print raw_file_length
         if raw_file_length > 2500 or raw_file_length == 0:
-            print "Possibly serious errors in transmission"
+            print("Possibly serious errors in transmission")
             problem_files.append(filepath)
             continue
         raw_array.index = get_rounded_timestamps(filepath, len(raw_array))
@@ -234,18 +250,20 @@ def iterate_over_file_names(path):
     big_raw_array = pd.concat([big_raw_array, small_raw_array])            
     big_raw_array.save('raw_buoy_displacement_pandas')  
     np.save("prob_files",np.array(problem_files))
+    print("finish iterate_over_files")
     return big_raw_array
 
 def calc_stats(raw_disp):
-    extrema = raw_disp.ix[np.invert(np.isnan(raw_disp['extrema']))]
+    print("start calc_stats")
+    masked_raw_disp = raw_disp.ix[raw_disp['signal_error']==False]
+    extrema = masked_raw_disp.ix[np.invert(np.isnan(masked_raw_disp['extrema']))]
     differences = np.ediff1d(np.array(extrema['heave']))
-    wave_height_timestamps = extrema.index[differences<0]
-    wave_heights = differences[differences<0]
-    wave_height_time_vert = np.array([wave_height_timestamps]).transpose()
-    wave_height_vert = np.array([wave_heights]).transpose()
-    wave_heights_with_timestamps = np.concatenate((wave_height_vert, wave_height_time_vert), axis=1)
-    np.save('wave_heights',wave_heights_with_timestamps)
+    wave_height_timestamps = extrema.index[differences>0]
+    wave_heights = differences[differences>0]
+    wave_height_dataframe = pd.DataFrame(wave_heights, columns=['wave_height_cm'], index = wave_height_timestamps)    
+    wave_height_dataframe.save('wave_height_dataframe_masked')
     get_zero_upcross_periods(raw_disp)
+    print("end calc_stats")
 
 def get_extrema_timestamps(extrema, index):
     indexes = [x[0] for x in extrema]
@@ -253,7 +271,9 @@ def get_extrema_timestamps(extrema, index):
     return timestamps
 
 def get_peaks(big_raw_array):
+    print("start get_peaks")
     y = big_raw_array['heave']
+    #y.save('big_raw_array')
     index = big_raw_array.index
     _max, _min = peakdetect(y)
     maxima_timestamps = get_extrema_timestamps(_max, index)
@@ -263,9 +283,41 @@ def get_peaks(big_raw_array):
     extrema_df = maxima_df.reset_index().merge(minima_df.reset_index(), how='outer').set_index('index')
     raw_disp_with_extrema = big_raw_array.join(extrema_df)
     raw_disp_with_extrema.save('raw_disp_with_extrema')
+    print("end get_peaks")
     return raw_disp_with_extrema
-    
 
-big_raw_array = iterate_over_file_names(folder_path)
-raw_disp_with_extrema = get_peaks(big_raw_array)
-calc_stats(raw_disp_with_extrema)
+def detect_error_waves(extrems_df):
+    error_wave_mask = extrems_df['sig_qual']>0
+    bad_extrem_indexes = np.where(error_wave_mask==True)
+    bad_waves = []
+    for index in bad_extrem_indexes[0]:
+        extrema_type = extrems_df['extrema'].ix[index]
+        bad_waves.append(index)
+        if extrema_type == -1:
+            bad_waves.append(index+1)
+        else:
+            bad_waves.append(index-1)
+		
+    boolean_error_waves = []
+    for element in range(len(extrems_df)):
+        boolean_error_waves.append(False)
+    boolean_error_waves_array = np.array(boolean_error_waves)
+    for element in bad_waves:
+        boolean_error_waves_array[element] = True
+    error_waves_df = pd.DataFrame(boolean_error_waves_array ,columns=['signal_error'], index = extrems_df.index )
+    extrems_plus_errors = extrems_df.join(error_waves_df)
+    extrems_plus_errors.save('raw_disp_with_extrema_and_errors')	
+    return extrems_plus_errors
+	
+for x in dirs:
+    month_dirs = os.listdir(os.path.join(folder_path,x))
+    for month_dir in month_dirs:
+        path = os.path.join(folder_path,x,month_dir)
+        #path = os.path.join(folder_path,x)
+        print(path)
+        big_raw_array = iterate_over_file_names(path)
+        raw_disp_with_extrema = get_peaks(big_raw_array)
+        raw_disp_with_extrema_errors = detect_error_waves(raw_disp_with_extrema)
+        calc_stats(raw_disp_with_extrema_errors)
+        import sys
+        sys.exit()
