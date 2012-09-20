@@ -24,7 +24,6 @@ import os
 import glob
 import pandas as pd
 from matplotlib.mlab import find
-
 folder_path = '/cm/shared/Datawell/Roag_Wavegen' 
 dirs = os.listdir(folder_path)    
 template = "%Y-%m-%dT%Hh%M"
@@ -173,17 +172,12 @@ def str_to_float(date_str):
 def get_zero_upcross_periods(raw_disp):
     print("start get_zero_upcross_periods")
     """ Based on code from https://gist.github.com/255291"""
-    timestamps = [str_to_float(x) for x in raw_disp.index]
-    #timestamps = [calendar.timegm(x.utctimetuple()) for x in raw_disp.index]
+    #timestamps = [str_to_float(x) for x in raw_disp.index]
+    timestamps = [calendar.timegm(x.utctimetuple()) for x in raw_disp.index]
     heave = raw_disp['heave']
-    #print heave
-    #print timestamps
     indices = find((heave[1:]>=0)&(heave[:-1]<0))
     np.save('zero_cross_indices',indices)
-    print "indices", type(indices)
-    print type(heave)
     crossings = [i - heave[i] / (heave[i+1] - heave[i]) for i in indices]
-    print "crossings", type(crossings)
     zero_crossing_timestamps = []
     for crossing in crossings:
         difference = timestamps[int(crossing)]-timestamps[int(crossing+1)]
@@ -201,14 +195,26 @@ def get_rounded_timestamps(file_name, raw_array_length):
     start timestamp and the raw records are assumed to be sent every 0.78125 
     seconds or 1.28Hz, returns a list of UTC datetimes """
     date_time = datetime.strptime(file_name.split('}')[1][:-5], template)
-    time_interval = 1800/float(raw_array_length)
+    if raw_array_length < 2300:
+        time_interval = 0.78125
+    else:
+        time_interval = 1800/float(raw_array_length)
+    #if raw_array_length == 2305:
+    #    """ Due to signals being sent more frequently than every second some 
+    #    half hour files contain one more record and a slightly shorter interval
+    #    (1800/2305) takes account of this """
+    #    time_interval = 0.7809110629
+    #elif raw_array_length == 2303:
+    #    time_interval = 0.78158923143
     unix_timestamp = calendar.timegm(date_time.timetuple())
     time_index = np.linspace(unix_timestamp, 
                              unix_timestamp + raw_array_length*time_interval - time_interval, 
                              raw_array_length)
     time_index = [round(x*10.0)/10.0 for x in time_index]    
-    utc_timestamps = [str(datetime.utcfromtimestamp(x)) for x in time_index]
-    #utc_timestamps = [datetime.utcfromtimestamp(x) for x in time_index]
+    utc_timestamps_old = [str(datetime.utcfromtimestamp(x)) for x in time_index]
+    np.save('utc_timestamps_old',utc_timestamps_old)
+    utc_timestamps = [datetime.utcfromtimestamp(x) for x in time_index]
+    np.save('utc_timestamps',utc_timestamps)
     return utc_timestamps
 
 def iterate_over_file_names(path):
@@ -220,7 +226,6 @@ def iterate_over_file_names(path):
     big_raw_array = pd.DataFrame(columns = raw_cols)
     small_raw_array = pd.DataFrame(columns = raw_cols)
     for index, filepath in enumerate(file_names):
-        #print filepath
         try:
             raw_file = open(filepath)
             raw_records = raw_file.readlines()
@@ -237,7 +242,6 @@ def iterate_over_file_names(path):
             problem_files.append(filepath)
             continue
         raw_file_length = len(raw_array)
-        #print raw_file_length
         if raw_file_length > 2500 or raw_file_length == 0:
             print("Possibly serious errors in transmission")
             problem_files.append(filepath)
@@ -260,20 +264,24 @@ def calc_stats(raw_disp):
     differences = np.ediff1d(np.array(extrema['heave']))
     wave_height_timestamps = extrema.index[differences>0]
     wave_heights = differences[differences>0]
+    #wave_height_time_vert = wave_height_timestamps
+    #wave_height_vert = np.arwave_heights]).transpose()
+    #wave_heights_with_timestamps = np.concatenate((wave_height, wave_height_timestamps), axis=1)
+    #np.save('wave_heights',wave_heights_with_timestamps)
+    #wave_height_timestamps = [time.mktime(x.timetuple()) for x in wave_height_timestamps]
     wave_height_dataframe = pd.DataFrame(wave_heights, columns=['wave_height_cm'], index = wave_height_timestamps)    
-    wave_height_dataframe.save('wave_height_dataframe_masked')
+    wave_height_dataframe.save('wave_height_dataframe')
     get_zero_upcross_periods(raw_disp)
     print("end calc_stats")
 
 def get_extrema_timestamps(extrema, index):
     indexes = [x[0] for x in extrema]
-    timestamps = [str(index[z]) for z in indexes]
+    timestamps = [index[z] for z in indexes]
     return timestamps
 
 def get_peaks(big_raw_array):
     print("start get_peaks")
     y = big_raw_array['heave']
-    #y.save('big_raw_array')
     index = big_raw_array.index
     _max, _min = peakdetect(y)
     maxima_timestamps = get_extrema_timestamps(_max, index)
@@ -281,7 +289,9 @@ def get_peaks(big_raw_array):
     maxima_df = pd.DataFrame(np.ones(len(_max), dtype=np.int64), columns = ['extrema'], index = maxima_timestamps)
     minima_df = pd.DataFrame(np.ones(len(_min), dtype=np.int64), columns = ['extrema'], index = minima_timestamps)*-1
     extrema_df = maxima_df.reset_index().merge(minima_df.reset_index(), how='outer').set_index('index')
+    extrema_df = extrema_df.sort()
     raw_disp_with_extrema = big_raw_array.join(extrema_df)
+    raw_disp_with_extrema = raw_disp_with_extrema.sort()
     raw_disp_with_extrema.save('raw_disp_with_extrema')
     print("end get_peaks")
     return raw_disp_with_extrema
@@ -306,6 +316,7 @@ def detect_error_waves(extrems_df):
         boolean_error_waves_array[element] = True
     error_waves_df = pd.DataFrame(boolean_error_waves_array ,columns=['signal_error'], index = extrems_df.index )
     extrems_plus_errors = extrems_df.join(error_waves_df)
+    extrems_plus_errors = extrems_plus_errors.sort()
     extrems_plus_errors.save('raw_disp_with_extrema_and_errors')	
     return extrems_plus_errors
 	
@@ -319,5 +330,3 @@ for x in dirs:
         raw_disp_with_extrema = get_peaks(big_raw_array)
         raw_disp_with_extrema_errors = detect_error_waves(raw_disp_with_extrema)
         calc_stats(raw_disp_with_extrema_errors)
-        import sys
-        sys.exit()
