@@ -24,7 +24,7 @@ import os
 import glob
 import pandas as pd
 from matplotlib.mlab import find
-folder_path = '/cm/shared/Datawell/Roag_Wavegen' 
+folder_path = 'D:\Datawell\Roag_Wavegen' 
 dirs = os.listdir(folder_path)    
 template = "%Y-%m-%dT%Hh%M"
 
@@ -199,13 +199,6 @@ def get_rounded_timestamps(file_name, raw_array_length):
         time_interval = 0.78125
     else:
         time_interval = 1800/float(raw_array_length)
-    #if raw_array_length == 2305:
-    #    """ Due to signals being sent more frequently than every second some 
-    #    half hour files contain one more record and a slightly shorter interval
-    #    (1800/2305) takes account of this """
-    #    time_interval = 0.7809110629
-    #elif raw_array_length == 2303:
-    #    time_interval = 0.78158923143
     unix_timestamp = calendar.timegm(date_time.timetuple())
     time_index = np.linspace(unix_timestamp, 
                              unix_timestamp + raw_array_length*time_interval - time_interval, 
@@ -247,11 +240,7 @@ def iterate_over_file_names(path):
             problem_files.append(filepath)
             continue
         raw_array.index = get_rounded_timestamps(filepath, len(raw_array))
-        small_raw_array = pd.concat([small_raw_array, raw_array])
-        if index % 100 ==0:
-            big_raw_array = pd.concat([big_raw_array, small_raw_array])
-            small_raw_array = pd.DataFrame(columns = raw_cols)
-    big_raw_array = pd.concat([big_raw_array, small_raw_array])            
+        big_raw_array = big_raw_array.append( raw_array )
     big_raw_array.save('raw_buoy_displacement_pandas')  
     np.save("prob_files",np.array(problem_files))
     print("finish iterate_over_files")
@@ -264,13 +253,10 @@ def calc_stats(raw_disp):
     differences = np.ediff1d(np.array(extrema['heave']))
     wave_height_timestamps = extrema.index[differences>0]
     wave_heights = differences[differences>0]
-    #wave_height_time_vert = wave_height_timestamps
-    #wave_height_vert = np.arwave_heights]).transpose()
-    #wave_heights_with_timestamps = np.concatenate((wave_height, wave_height_timestamps), axis=1)
-    #np.save('wave_heights',wave_heights_with_timestamps)
-    #wave_height_timestamps = [time.mktime(x.timetuple()) for x in wave_height_timestamps]
     wave_height_dataframe = pd.DataFrame(wave_heights, columns=['wave_height_cm'], index = wave_height_timestamps)    
+    wave_heights, wave_height_timestamps, differences, extrema, masked_raw_disp = None, None, None, None, None
     wave_height_dataframe.save('wave_height_dataframe')
+    wave_height_dataframe = None
     get_zero_upcross_periods(raw_disp)
     print("end calc_stats")
 
@@ -289,8 +275,10 @@ def get_peaks(big_raw_array):
     maxima_df = pd.DataFrame(np.ones(len(_max), dtype=np.int64), columns = ['extrema'], index = maxima_timestamps)
     minima_df = pd.DataFrame(np.ones(len(_min), dtype=np.int64), columns = ['extrema'], index = minima_timestamps)*-1
     extrema_df = maxima_df.reset_index().merge(minima_df.reset_index(), how='outer').set_index('index')
+    maxima_df, minima_df, maxima_timestamps, minima_timestamps = None, None, None, None
     extrema_df = extrema_df.sort()
     raw_disp_with_extrema = big_raw_array.join(extrema_df)
+    extrema_df, big_raw_array = None, None
     raw_disp_with_extrema = raw_disp_with_extrema.sort()
     raw_disp_with_extrema.save('raw_disp_with_extrema')
     print("end get_peaks")
@@ -320,13 +308,19 @@ def detect_error_waves(extrems_df):
     extrems_plus_errors.save('raw_disp_with_extrema_and_errors')	
     return extrems_plus_errors
 	
-for x in dirs:
-    month_dirs = os.listdir(os.path.join(folder_path,x))
-    for month_dir in month_dirs:
-        path = os.path.join(folder_path,x,month_dir)
-        #path = os.path.join(folder_path,x)
-        print(path)
-        big_raw_array = iterate_over_file_names(path)
-        raw_disp_with_extrema = get_peaks(big_raw_array)
-        raw_disp_with_extrema_errors = detect_error_waves(raw_disp_with_extrema)
-        calc_stats(raw_disp_with_extrema_errors)
+def iterate_over_months(dirs, folder_path):
+    for x in dirs:
+        month_dirs = os.listdir(os.path.join(folder_path,x))
+        for month_dir in month_dirs:
+            path = os.path.join(folder_path,x,month_dir)
+            #path = os.path.join(folder_path,x)
+            print(path)
+            big_raw_array = iterate_over_file_names(path)
+            raw_disp_with_extrema = get_peaks(big_raw_array)
+            big_raw_array = None
+            raw_disp_with_extrema_errors = detect_error_waves(raw_disp_with_extrema)
+            raw_disp_with_extrema = None
+            calc_stats(raw_disp_with_extrema_errors)
+            raw_disp_with_extrema_errors = None
+        
+iterate_over_months(dirs, folder_path)
