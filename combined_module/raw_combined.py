@@ -24,7 +24,7 @@ import os
 import glob
 import pandas as pd
 from matplotlib.mlab import find
-folder_path = 'D:\Datawell\Roag_Wavegen' 
+folder_path = 'D:\New_Datawell\Roag_Wavegen' 
 dirs = os.listdir(folder_path)    
 template = "%Y-%m-%dT%Hh%M"
 
@@ -168,7 +168,7 @@ def datetime_to_float(date_time):
 def str_to_float(date_str):
     date_time = str_to_datetime(date_str)
     return datetime_to_float(date_time)    
-    
+
 def get_zero_upcross_periods(raw_disp):
     print("start get_zero_upcross_periods")
     """ Based on code from https://gist.github.com/255291"""
@@ -178,11 +178,16 @@ def get_zero_upcross_periods(raw_disp):
     indices = find((heave[1:]>=0)&(heave[:-1]<0))
     np.save('zero_cross_indices',indices)
     crossings = [i - heave[i] / (heave[i+1] - heave[i]) for i in indices]
+    np.save('crossings',crossings)
     zero_crossing_timestamps = []
     for crossing in crossings:
-        difference = timestamps[int(crossing)]-timestamps[int(crossing+1)]
-        fraction = crossing-int(crossing)
-        zero_crossing_timestamps.append(timestamps[int(crossing)] + difference * fraction)
+        #Check if zero cross occurs at the end of the time-series
+        if crossing+1 == len(timestamps):
+            zero_crossing_timestamps.append(timestamps[int(crossing)])
+        else:
+            difference = timestamps[int(crossing)]-timestamps[int(crossing+1)]
+            fraction = crossing-int(crossing)
+            zero_crossing_timestamps.append(timestamps[int(crossing)] + difference * fraction)
     zero_crossing_timestamps_np = np.array(zero_crossing_timestamps)
     zero_upcross_periods = np.ediff1d(zero_crossing_timestamps_np)
     zero_crossing_timestamps = [datetime.utcfromtimestamp(x) for x in zero_crossing_timestamps]
@@ -248,6 +253,12 @@ def iterate_over_file_names(path):
 
 def calc_stats(raw_disp):
     print("start calc_stats")
+    # There is an issue with the line below if you have signal_error true but
+    # the following trough has a signal_error false would you get mismatched
+    # peak and troughs in your DataFrame and therefore incorrect wave heights
+    # to address this you need to search for signal_error True or >4*std True
+    # and if extrema is not NaN find out if it is a peak ( then remove 
+    # following trough and if it is a trough remove preceding peak
     masked_raw_disp = raw_disp.ix[raw_disp['signal_error']==False]
     extrema = masked_raw_disp.ix[np.invert(np.isnan(masked_raw_disp['extrema']))]
     differences = np.ediff1d(np.array(extrema['heave']))
@@ -285,6 +296,7 @@ def get_peaks(big_raw_array):
     return raw_disp_with_extrema
 
 def detect_error_waves(extrems_df):
+    print "start detect_error_waves"
     error_wave_mask = extrems_df['sig_qual']>0
     bad_extrem_indexes = np.where(error_wave_mask==True)
     bad_waves = []
@@ -305,9 +317,32 @@ def detect_error_waves(extrems_df):
     error_waves_df = pd.DataFrame(boolean_error_waves_array ,columns=['signal_error'], index = extrems_df.index )
     extrems_plus_errors = extrems_df.join(error_waves_df)
     extrems_plus_errors = extrems_plus_errors.sort()
-    extrems_plus_errors.save('raw_disp_with_extrema_and_errors')	
+    extrems_plus_errors.save('raw_disp_with_extrema_and_errors')
+    print "end detect_error_waves"	
     return extrems_plus_errors
-	
+
+def detect_4_by_std(raw_disp):
+    print "start detect_4_by_std"
+    raw_set_length = 2304
+    four_times_std_heave_30_mins = []
+    for x in range(0, len(raw_disp), raw_set_length):
+        end_index = x+raw_set_length
+        if end_index > len(raw_disp):
+            disp_set = raw_disp.ix[x:]
+        else:
+            disp_set = raw_disp.ix[x:end_index]
+        set_description = disp_set.describe()
+        four_times_heave_std = set_description['heave'][2] * 4
+        four_times_std_heave_30_mins.append(disp_set['heave'].abs()>four_times_heave_std)
+    
+    flat_four_times_std = pd.concat(four_times_std_heave_30_mins)
+    flat_four_times_std.name=['>4*std']
+    flat_four_times_std = pd.DataFrame(flat_four_times_std)
+    raw_plus_std = raw_disp.join(flat_four_times_std)
+    raw_plus_std.save('raw_plus_std')
+    print "end detect_4_by_std"
+    return raw_plus_std
+    
 def iterate_over_months(dirs, folder_path):
     for x in dirs:
         month_dirs = os.listdir(os.path.join(folder_path,x))
@@ -319,8 +354,9 @@ def iterate_over_months(dirs, folder_path):
             raw_disp_with_extrema = get_peaks(big_raw_array)
             big_raw_array = None
             raw_disp_with_extrema_errors = detect_error_waves(raw_disp_with_extrema)
+            raw_plus_std = detect_4_by_std(raw_disp_with_extrema_errors)
             raw_disp_with_extrema = None
-            calc_stats(raw_disp_with_extrema_errors)
+            calc_stats(raw_plus_std)
             raw_disp_with_extrema_errors = None
         
 iterate_over_months(dirs, folder_path)
