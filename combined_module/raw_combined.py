@@ -24,7 +24,7 @@ import os
 import glob
 import pandas as pd
 from matplotlib.mlab import find
-folder_path = 'D:\New_Datawell\Roag_Wavegen' 
+folder_path = 'D:\New_Datawell\Bragar_HebMarine2' 
 dirs = os.listdir(folder_path)    
 template = "%Y-%m-%dT%Hh%M"
 
@@ -253,17 +253,42 @@ def iterate_over_file_names(path):
 
 def calc_stats(raw_disp):
     print("start calc_stats")
-    # There is an issue with the line below if you have signal_error true but
-    # the following trough has a signal_error false would you get mismatched
-    # peak and troughs in your DataFrame and therefore incorrect wave heights
-    # to address this you need to search for signal_error True or >4*std True
-    # and if extrema is not NaN find out if it is a peak ( then remove 
-    # following trough and if it is a trough remove preceding peak
-    masked_raw_disp = raw_disp.ix[raw_disp['signal_error']==False]
-    extrema = masked_raw_disp.ix[np.invert(np.isnan(masked_raw_disp['extrema']))]
+    # This function selects peaks, and for those with signal_error True or 
+    # >4*std True masks the following trough and then for all troughs with
+    # signal_error True or >4*std True mask the preceding peak, wave heights
+    # are calculated from peak to trough
+    peaks = raw_disp[raw_disp['extrema']==1]
+    false_peaks = peaks[peaks['signal_error']==True]
+    false_peaks_2 = peaks[peaks['>4*std']==True]
+    false_peaks = false_peaks.combine_first(false_peaks_2)
+    false_peak_index = false_peaks.index
+    troughs = raw_disp[raw_disp['extrema']==-1]
+    indexes = []
+    for index_of_false_peak in false_peak_index:
+        if len(troughs.ix[index_of_false_peak:])!=0:
+            indexes.append(troughs.ix[index_of_false_peak:].ix[0].name)
+    false_troughs = troughs[troughs['signal_error']==True]
+    false_troughs_2 = troughs[troughs['>4*std']==True]
+    false_troughs.combine_first(false_troughs_2)
+    false_trough_index = false_troughs.index
+    for index_of_false_trough in false_trough_index:
+        if len(peaks.ix[:index_of_false_trough])!=0:
+            indexes.append(peaks.ix[:index_of_false_trough].ix[-1].name)
+    boolean_array = raw_disp.index == indexes[0]
+    for x in indexes[1:]:
+        boolean_array += raw_disp.index == x
+    accompanying_extrema = pd.DataFrame(boolean_array, index = raw_disp.index, 
+                                        columns = ['accompanying_false_extrema'])
+    extrema = raw_disp.join(accompanying_extrema)
+    extrema.save('pre_extrema')
+    extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
+    extrema = extrema.ix[extrema['signal_error']==False]
+    extrema = extrema.ix[extrema['>4*std']==False]
+    extrema = extrema.ix[extrema['accompanying_false_extrema']==False]
+    extrema.save('extrema')
     differences = np.ediff1d(np.array(extrema['heave']))
-    wave_height_timestamps = extrema.index[differences>0]
-    wave_heights = differences[differences>0]
+    wave_height_timestamps = extrema.index[differences<0]
+    wave_heights = np.absolute(differences[differences<0])
     wave_height_dataframe = pd.DataFrame(wave_heights, columns=['wave_height_cm'], index = wave_height_timestamps)    
     wave_heights, wave_height_timestamps, differences, extrema, masked_raw_disp = None, None, None, None, None
     wave_height_dataframe.save('wave_height_dataframe')
@@ -322,10 +347,14 @@ def detect_error_waves(extrems_df):
     return extrems_plus_errors
 
 def detect_4_by_std(raw_disp):
-    print "start detect_4_by_std"
+    # This function iterates through the displacements DataFrame in 2304 long
+    # sets, generating statistics for each set including standard deviation
+    # the heave displacements are then compared against 4 times their standard 
+    # deviation
     raw_set_length = 2304
     four_times_std_heave_30_mins = []
     for x in range(0, len(raw_disp), raw_set_length):
+        print x
         end_index = x+raw_set_length
         if end_index > len(raw_disp):
             disp_set = raw_disp.ix[x:]
@@ -333,7 +362,8 @@ def detect_4_by_std(raw_disp):
             disp_set = raw_disp.ix[x:end_index]
         set_description = disp_set.describe()
         four_times_heave_std = set_description['heave'][2] * 4
-        four_times_std_heave_30_mins.append(disp_set['heave'].abs()>four_times_heave_std)
+        if not np.isnan(four_times_heave_std):
+            four_times_std_heave_30_mins.append(disp_set['heave'].abs()>four_times_heave_std)
     
     flat_four_times_std = pd.concat(four_times_std_heave_30_mins)
     flat_four_times_std.name=['>4*std']
