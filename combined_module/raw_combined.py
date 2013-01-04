@@ -24,7 +24,7 @@ import os
 import glob
 import pandas as pd
 from matplotlib.mlab import find
-folder_path = 'D:\New_Datawell\Bragar_HebMarine2' 
+folder_path = 'D:\Datawell\Roag_Wavegen' 
 dirs = os.listdir(folder_path)    
 template = "%Y-%m-%dT%Hh%M"
 
@@ -225,6 +225,7 @@ def iterate_over_file_names(path):
     small_raw_array = pd.DataFrame(columns = raw_cols)
     for index, filepath in enumerate(file_names):
         try:
+            print filepath
             raw_file = open(filepath)
             raw_records = raw_file.readlines()
             if len(raw_records) == 0:
@@ -233,7 +234,15 @@ def iterate_over_file_names(path):
             for record in raw_records:
                 record_list = record.split(',')
                 if len(record_list) == 4:
-                    records.append(record_list)
+                    new_array = []
+                    bad_record = False
+                    for value in record_list:
+                        if value == '' or value == ' ' or value == '   ' or 'E' in value:
+                            bad_record = True
+                        else:
+                            new_array.append(long(value.strip('\n')))
+                    if not bad_record:
+                        records.append(new_array)
             raw_array = pd.DataFrame(records,columns=raw_cols,dtype=np.int)
         except StopIteration:
             print(filepath, "StopIteration")
@@ -346,6 +355,20 @@ def detect_error_waves(extrems_df):
     print "end detect_error_waves"	
     return extrems_plus_errors
 
+def compare_std(disp_set):
+    mask = np.array([])
+    columns = ['heave', 'north', 'west']
+    for column in columns:
+        four_times_heave_std = disp_set[column].std() * 4
+        if not np.isnan(four_times_heave_std):
+            if len(mask)==0:
+                mask = disp_set[column].abs() > four_times_heave_std
+            else:
+                new_mask = disp_set[column].abs() > four_times_heave_std
+                mask += new_mask
+    return mask
+
+    
 def detect_4_by_std(raw_disp):
     # This function iterates through the displacements DataFrame in 2304 long
     # sets, generating statistics for each set including standard deviation
@@ -360,10 +383,9 @@ def detect_4_by_std(raw_disp):
             disp_set = raw_disp.ix[x:]
         else:
             disp_set = raw_disp.ix[x:end_index]
-        set_description = disp_set.describe()
-        four_times_heave_std = set_description['heave'][2] * 4
-        if not np.isnan(four_times_heave_std):
-            four_times_std_heave_30_mins.append(disp_set['heave'].abs()>four_times_heave_std)
+        mask = compare_std(disp_set)
+        if len(mask) != 0:
+            four_times_std_heave_30_mins.append(mask)
     
     flat_four_times_std = pd.concat(four_times_std_heave_30_mins)
     flat_four_times_std.name=['>4*std']
