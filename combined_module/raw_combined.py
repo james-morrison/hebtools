@@ -172,11 +172,9 @@ def str_to_float(date_str):
 def get_zero_upcross_periods(raw_disp):
     print("start get_zero_upcross_periods")
     """ Based on code from https://gist.github.com/255291"""
-    #timestamps = [str_to_float(x) for x in raw_disp.index]
     timestamps = [calendar.timegm(x.utctimetuple()) for x in raw_disp.index]
     heave = raw_disp['heave']
     indices = find((heave[1:]>=0)&(heave[:-1]<0))
-    np.save('zero_cross_indices',indices)
     crossings = [i - heave[i] / (heave[i+1] - heave[i]) for i in indices]
     np.save('crossings',crossings)
     zero_crossing_timestamps = []
@@ -193,7 +191,6 @@ def get_zero_upcross_periods(raw_disp):
     zero_crossing_timestamps = [datetime.utcfromtimestamp(x) for x in zero_crossing_timestamps]
     df = pd.DataFrame(zero_upcross_periods, index = zero_crossing_timestamps[:-1])
     df.save('zero_crossing_dataframe')
-    print("end get_zero_upcross_periods")
 
 def get_rounded_timestamps(file_name, raw_array_length):
     """ Takes the length of the raw file and based on the file name gives the
@@ -209,10 +206,7 @@ def get_rounded_timestamps(file_name, raw_array_length):
                              unix_timestamp + raw_array_length*time_interval - time_interval, 
                              raw_array_length)
     time_index = [round(x*10.0)/10.0 for x in time_index]    
-    utc_timestamps_old = [str(datetime.utcfromtimestamp(x)) for x in time_index]
-    np.save('utc_timestamps_old',utc_timestamps_old)
     utc_timestamps = [datetime.utcfromtimestamp(x) for x in time_index]
-    np.save('utc_timestamps',utc_timestamps)
     return utc_timestamps
 
 def iterate_over_file_names(path):
@@ -225,7 +219,6 @@ def iterate_over_file_names(path):
     small_raw_array = pd.DataFrame(columns = raw_cols)
     for index, filepath in enumerate(file_names):
         try:
-            print filepath
             raw_file = open(filepath)
             raw_records = raw_file.readlines()
             if len(raw_records) == 0:
@@ -233,11 +226,13 @@ def iterate_over_file_names(path):
             records = []
             for record in raw_records:
                 record_list = record.split(',')
+                # Checking that record is valid format
                 if len(record_list) == 4:
                     new_array = []
                     bad_record = False
                     for value in record_list:
-                        if value == '' or value == ' ' or value == '   ' or 'E' in value:
+                        value = value.strip()
+                        if value == '' or 'E' in value:
                             bad_record = True
                         else:
                             new_array.append(long(value.strip('\n')))
@@ -260,16 +255,14 @@ def iterate_over_file_names(path):
     print("finish iterate_over_files")
     return big_raw_array
 
-def calc_stats(raw_disp):
-    print("start calc_stats")
+def find_accompanying_extrema(raw_disp):
     # This function selects peaks, and for those with signal_error True or 
     # >4*std True masks the following trough and then for all troughs with
-    # signal_error True or >4*std True mask the preceding peak, wave heights
-    # are calculated from peak to trough
+    # signal_error True or >4*std True mask the preceding peak
     peaks = raw_disp[raw_disp['extrema']==1]
     false_peaks = peaks[peaks['signal_error']==True]
-    false_peaks_2 = peaks[peaks['>4*std']==True]
-    false_peaks = false_peaks.combine_first(false_peaks_2)
+    false_peaks_std = peaks[peaks['>4*std']==True]
+    false_peaks = false_peaks.combine_first(false_peaks_std)
     false_peak_index = false_peaks.index
     troughs = raw_disp[raw_disp['extrema']==-1]
     indexes = []
@@ -277,8 +270,8 @@ def calc_stats(raw_disp):
         if len(troughs.ix[index_of_false_peak:])!=0:
             indexes.append(troughs.ix[index_of_false_peak:].ix[0].name)
     false_troughs = troughs[troughs['signal_error']==True]
-    false_troughs_2 = troughs[troughs['>4*std']==True]
-    false_troughs.combine_first(false_troughs_2)
+    false_troughs_std = troughs[troughs['>4*std']==True]
+    false_troughs.combine_first(false_troughs_std)
     false_trough_index = false_troughs.index
     for index_of_false_trough in false_trough_index:
         if len(peaks.ix[:index_of_false_trough])!=0:
@@ -286,8 +279,14 @@ def calc_stats(raw_disp):
     boolean_array = raw_disp.index == indexes[0]
     for x in indexes[1:]:
         boolean_array += raw_disp.index == x
-    accompanying_extrema = pd.DataFrame(boolean_array, index = raw_disp.index, 
+    accompanying_false_extrema = pd.DataFrame(boolean_array, index = raw_disp.index, 
                                         columns = ['accompanying_false_extrema'])
+    return accompanying_false_extrema
+    
+def calc_stats(raw_disp):
+    print("start calc_stats")
+    # wave heights are calculated from peak to trough
+    accompanying_extrema = find_accompanying_extrema(raw_disp)
     extrema = raw_disp.join(accompanying_extrema)
     extrema.save('pre_extrema')
     extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
@@ -299,34 +298,29 @@ def calc_stats(raw_disp):
     wave_height_timestamps = extrema.index[differences<0]
     wave_heights = np.absolute(differences[differences<0])
     wave_height_dataframe = pd.DataFrame(wave_heights, columns=['wave_height_cm'], index = wave_height_timestamps)    
-    wave_heights, wave_height_timestamps, differences, extrema, masked_raw_disp = None, None, None, None, None
     wave_height_dataframe.save('wave_height_dataframe')
-    wave_height_dataframe = None
-    get_zero_upcross_periods(raw_disp)
-    print("end calc_stats")
-
+    
 def get_extrema_timestamps(extrema, index):
     indexes = [x[0] for x in extrema]
     timestamps = [index[z] for z in indexes]
     return timestamps
+
+def get_extrema_df(extrema_index, index, extrema_type):
+    extrema_timestamps = get_extrema_timestamps(extrema_index, index)
+    return pd.DataFrame(np.ones(len(extrema_index), dtype=np.int64), 
+                        columns = ['extrema'], 
+                        index = extrema_timestamps)*extrema_type
 
 def get_peaks(big_raw_array):
     print("start get_peaks")
     y = big_raw_array['heave']
     index = big_raw_array.index
     _max, _min = peakdetect(y)
-    maxima_timestamps = get_extrema_timestamps(_max, index)
-    minima_timestamps = get_extrema_timestamps(_min, index)
-    maxima_df = pd.DataFrame(np.ones(len(_max), dtype=np.int64), columns = ['extrema'], index = maxima_timestamps)
-    minima_df = pd.DataFrame(np.ones(len(_min), dtype=np.int64), columns = ['extrema'], index = minima_timestamps)*-1
-    extrema_df = maxima_df.reset_index().merge(minima_df.reset_index(), how='outer').set_index('index')
-    maxima_df, minima_df, maxima_timestamps, minima_timestamps = None, None, None, None
-    extrema_df = extrema_df.sort()
+    maxima_df = get_extrema_df(_max, index, 1 )
+    minima_df = get_extrema_df(_min, index, -1 )
+    extrema_df = pd.concat([maxima_df, minima_df])
     raw_disp_with_extrema = big_raw_array.join(extrema_df)
-    extrema_df, big_raw_array = None, None
     raw_disp_with_extrema = raw_disp_with_extrema.sort()
-    raw_disp_with_extrema.save('raw_disp_with_extrema')
-    print("end get_peaks")
     return raw_disp_with_extrema
 
 def detect_error_waves(extrems_df):
@@ -340,8 +334,7 @@ def detect_error_waves(extrems_df):
         if extrema_type == -1:
             bad_waves.append(index+1)
         else:
-            bad_waves.append(index-1)
-		
+            bad_waves.append(index-1)	
     boolean_error_waves = []
     for element in range(len(extrems_df)):
         boolean_error_waves.append(False)
@@ -351,8 +344,7 @@ def detect_error_waves(extrems_df):
     error_waves_df = pd.DataFrame(boolean_error_waves_array ,columns=['signal_error'], index = extrems_df.index )
     extrems_plus_errors = extrems_df.join(error_waves_df)
     extrems_plus_errors = extrems_plus_errors.sort()
-    extrems_plus_errors.save('raw_disp_with_extrema_and_errors')
-    print "end detect_error_waves"	
+    extrems_plus_errors.save('raw_disp_with_extrema_and_errors')	
     return extrems_plus_errors
 
 def compare_std(disp_set):
@@ -374,10 +366,10 @@ def detect_4_by_std(raw_disp):
     # sets, generating statistics for each set including standard deviation
     # the heave displacements are then compared against 4 times their standard 
     # deviation
+    print "detect_4_by_std"
     raw_set_length = 2304
     four_times_std_heave_30_mins = []
     for x in range(0, len(raw_disp), raw_set_length):
-        print x
         end_index = x+raw_set_length
         if end_index > len(raw_disp):
             disp_set = raw_disp.ix[x:]
@@ -385,14 +377,12 @@ def detect_4_by_std(raw_disp):
             disp_set = raw_disp.ix[x:end_index]
         mask = compare_std(disp_set)
         if len(mask) != 0:
-            four_times_std_heave_30_mins.append(mask)
-    
+            four_times_std_heave_30_mins.append(mask)    
     flat_four_times_std = pd.concat(four_times_std_heave_30_mins)
     flat_four_times_std.name=['>4*std']
     flat_four_times_std = pd.DataFrame(flat_four_times_std)
     raw_plus_std = raw_disp.join(flat_four_times_std)
     raw_plus_std.save('raw_plus_std')
-    print "end detect_4_by_std"
     return raw_plus_std
     
 def iterate_over_months(dirs, folder_path):
@@ -400,15 +390,13 @@ def iterate_over_months(dirs, folder_path):
         month_dirs = os.listdir(os.path.join(folder_path,x))
         for month_dir in month_dirs:
             path = os.path.join(folder_path,x,month_dir)
-            #path = os.path.join(folder_path,x)
             print(path)
             big_raw_array = iterate_over_file_names(path)
             raw_disp_with_extrema = get_peaks(big_raw_array)
-            big_raw_array = None
             raw_disp_with_extrema_errors = detect_error_waves(raw_disp_with_extrema)
             raw_plus_std = detect_4_by_std(raw_disp_with_extrema_errors)
-            raw_disp_with_extrema = None
             calc_stats(raw_plus_std)
-            raw_disp_with_extrema_errors = None
+            get_zero_upcross_periods(raw_plus_std)
+
         
 iterate_over_months(dirs, folder_path)
