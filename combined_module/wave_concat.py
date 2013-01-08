@@ -1,3 +1,14 @@
+"""
+Module for concatenating wave_height_dataframes produced by raw_combined.py
+and given a buoy root directory and buoy name will iterate over a list of buoys
+producing statistics for the concatenated wave_height_dataframes including 
+h_max, h_1_3_mean and the time period these statistics cover. The statistics
+are then saved as a Pandas DataFrame and exported to Excel xlsx format
+
+@author: James Morrison
+@license: MIT
+"""
+
 import os
 import pandas as pd
 import numpy as np
