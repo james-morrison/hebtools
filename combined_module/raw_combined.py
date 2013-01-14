@@ -265,6 +265,10 @@ class Error_Check():
         self.detect_4_by_std()
         
     def detect_error_waves(self, extrema_df):
+        """
+            Find values with status signal problem and is a peak or trough,
+            then adds a 'signal_error' boolean column to the DataFrame
+        """
         print "start detect_error_waves"
         error_wave_mask = extrema_df['sig_qual']>0
         bad_extrem_indexes = np.where(error_wave_mask==True)
@@ -289,6 +293,9 @@ class Error_Check():
         self.extrema_with_errors = extrems_plus_errors
 
     def compare_std(self, disp_set):
+        """ 
+            compare values with four time standard deviation
+        """
         mask = np.array([])
         columns = ['heave', 'north', 'west']
         for column in columns:
@@ -303,10 +310,10 @@ class Error_Check():
 
     
     def detect_4_by_std(self):
-        # This function iterates through the displacements DataFrame in 2304 long
-        # sets, generating statistics for each set including standard deviation
-        # the heave displacements are then compared against 4 times their standard 
-        # deviation
+        """ This function iterates through the displacements DataFrame in 2304 long
+        sets, generating statistics for each set including standard deviation 
+        the heave displacements are then compared against 4 times their standard 
+        deviation """
         print "detect_4_by_std"
         raw_set_length = 2304
         four_times_std_heave_30_mins = []
