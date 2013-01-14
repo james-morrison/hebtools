@@ -25,14 +25,16 @@ data that has quality issues, wave heights and zero crossing periods are
 calculated. Wave heights are calculated from peak to trough.
 
 The 'problem_file_concat' module produces a csv file with the filenames of all
-raw files that could not be processed, which can be run after 'raw_combined'.
+raw files that could not be processed, this module can be run after 
+'raw_combined'.
 
 The 'wave_concat' module can be run after 'raw_combined' to create a complete
-dataframe of all wave heights timestamped and sorted temporally for each buoy,
-the dataframe is then exported as an Excel workbook ( .xlsx file ).
-
-The module requires a directory path that contains buoy directories and their 
-names.
+dataframe of all wave heights timestamped and sorted temporally for each buoy.
+Statistics are then generated on wave sets derived from the complete dataframe 
+which are then exported as an Excel workbook ( .xlsx file ). This module 
+requires a directory path that contains buoy directories and their names, the 
+set size used for statistic calculation can be by number of waves or time 
+interval.
 
 Requires: 
 Numpy ( numpy.scipy.org )
