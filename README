@@ -20,7 +20,19 @@ The 'problem_file_concat' module produces a csv file with the filenames of all
 raw files that could not be processed, which can be run after 'raw_combined'.
 
 The 'wave_concat' module can be run after 'raw_combined' to create a complete
-dataframe of all wave heights timestamped and sorted temporally for each buoy.
-If given a directory path that contains buoy directories and their names.
+dataframe of all wave heights timestamped and sorted temporally for each buoy,
+the dataframe is then exported as an Excel workbook ( .xlsx file ).
 
-Requires Numpy ( numpy.scipy.org ) and Pandas ( pandas.pydata.org )
+The module requires a directory path that contains buoy directories and their 
+names.
+
+Requires: 
+Numpy ( numpy.scipy.org )
+Pandas ( pandas.pydata.org )
+Matplotlib ( matplotlib.org )
+openpyxl ( bitbucket.org/ericgazoni/openpyxl/src )
+
+Almost all of the above requirements can be satisfied with a Python 
+distribution like Anaconda CE from http://continuum.io/downloads.html
+openpyxl can be installed afterwards by running 'easy_install openpyxl' from 
+the Anaconda scripts directory.
