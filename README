@@ -1,6 +1,7 @@
 Supply the path of a Datawell Waverider buoy data directory containing year 
-subfolders, the module will process the values into a pandas DataFrame with 
-columns 'sig_qual', 'heave', 'north' and 'west' the index is a DateTimeIndex.  
+subfolders, the module will then process the records from the raw files into 
+a pandas DataFrame with columns 'sig_qual', 'heave', 'north' and 'west' the 
+index is a DateTimeIndex.  
 The module will iterate through the months folders in the supplied year 
 directory, saving a pandas files in each directory.  
 The code skips empty or erroneously long files and each record is rounded to 
