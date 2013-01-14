@@ -7,7 +7,10 @@ The module will iterate through the months folders in the supplied year
 directory, saving a pandas files in each directory.  
 
 The code skips empty or erroneously long files and each record is rounded to 
-the nearest half second, so the sequence is slightly irregular.  
+the nearest then rounded to the nearest tenth of a second, so the sequence is 
+slightly irregular. Caution should be taken in treating the timestamps as 
+absolute values, they are a best approximation in the context of the time 
+series.  
 
 Peak and Troughs are detected for the heave values and with masking of data 
 that has quality issues, wave heights and zero crossing periods are 
