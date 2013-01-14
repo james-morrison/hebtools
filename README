@@ -1,20 +1,28 @@
-Supply the path of a Datawell Waverider buoy data directory containing year 
+This project has a number of Python files for processing raw Datawell Waverider
+files into a more managable time series. The main module is 'raw_combined' 
+described below, this project allows easier calculation of statistics from the
+displacment data, and more sophisticated masking of improbable data than
+is available from existing software packages.
+
+Given the path of a Datawell Waverider buoy data directory containing year 
 subfolders, the 'raw_combined' module will then process the records from the 
 raw files into a pandas DataFrame with columns 'sig_qual', 'heave', 'north' 
 and 'west' the index is a DateTimeIndex.  
 
-The 'raw_combined' module will iterate through the months folders in the 
-supplied year directory, saving a pandas files in each directory.  
+The 'raw_combined' module will iterate through the years, then months folders 
+in the supplied buoy directory, saving pandas files in each month directory.  
 
 The code skips empty or erroneously long files and each record is rounded to 
 the nearest then rounded to the nearest tenth of a second, so the sequence is 
 slightly irregular. Caution should be taken in treating the timestamps as 
 absolute values, they are a best approximation in the context of the time 
-series.  
+series. The first value in every raw file is treated as the very start of that
+half hour period, e.g. for the file Buoy_Name}2011-12-05T18h30Z.raw  the first
+record will have a timestamp of 18:30:00 ( Hours:Minutes:Seconds )  
 
-Peak and Troughs are detected for the heave values and with masking of data 
-that has quality issues, wave heights and zero crossing periods are 
-calculated.  
+Peak and troughs are detected for the heave values, then masking is applied to 
+data that has quality issues, wave heights and zero crossing periods are 
+calculated. Wave heights are calculated from peak to trough.
 
 The 'problem_file_concat' module produces a csv file with the filenames of all
 raw files that could not be processed, which can be run after 'raw_combined'.
