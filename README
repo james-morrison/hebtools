@@ -1,1 +1,11 @@
-Test
+Supply the path of a Datawell Waverider buoy data directory containing year 
+subfolders, the module will process the values into a pandas DataFrame with 
+columns 'sig_qual', 'heave', 'north' and 'west' the index is a DateTimeIndex.  
+The module will iterate through the months folders in the supplied year 
+directory, saving a pandas files in each directory.  
+The code skips empty or erroneously long files and each record is rounded to 
+the nearest half second, so the sequence is slightly irregular.  
+Peak and Troughs are detected for the heave values and with masking of data 
+that has quality issues, wave heights and zero crossing periods are 
+calculated.   
+Requires Numpy ( numpy.scipy.org ) and Pandas ( pandas.pydata.org )
