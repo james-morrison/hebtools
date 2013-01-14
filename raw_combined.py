@@ -1,22 +1,24 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Jul 27 15:52:46 2012
-
-This modules takes a folder_path to a buoy month directory, iterates over the 
+"""This modules takes a folder_path to a buoy month directory, iterates over the 
 files, creates a pandas DataFrame for each month and saves it in the month 
 folder. The pandas DataFrame is time indexed to nearest tenth of a second 
-second, with columns for signal_quality, heave, north, west. A numpy file is 
-saved contains a simple 1d array listing files which have structure errors and 
-therefore their data is unable to be included in the DataFrame. The heave 
-timeseries of the DataFrame is then checked to find peaks and troughs, those 
-identified are then added as a column 'extrema' to the orginal DataFrame and 
-saved again. The DataFrame containing extrema is then used to calculate, wave 
-heights with timestamps. The zero crossing periods, including their timestamps 
-are also calculated.
+second, with columns for signal_quality, heave, north, west. 
+
+A numpy file 'prob_files.npy' is saved containing a simple 1d array, listing 
+files which have structure errors, so their data is unable to be included in the 
+DataFrame. The heave timeseries of the DataFrame is then checked to find peaks
+and troughs, those identified are then added as a column 'extrema' to the 
+orginal data and saved again. 
+
+Data which has a non zero status signal and values which deviate more than four
+times from the standard deviation are then masked from calculations. The masked
+data containing extrema is then used to calculate, wave heights and zero 
+crossing periods along with their approximate timestamps.
 
 @author: James Morrison
 @license: MIT
 """
+
 import numpy as np
 from datetime import datetime
 import calendar
