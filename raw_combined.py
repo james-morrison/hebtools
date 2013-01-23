@@ -26,7 +26,7 @@ import os
 import glob
 import pandas as pd
 from matplotlib.mlab import find
-folder_path = 'D:\Datawell\Roag_Wavegen' 
+folder_path = 'D:\New_Datawell\Roag_Wavegen' 
 
 class Wave_Stats:
     
@@ -62,7 +62,8 @@ class Wave_Stats:
         print("start calc_stats")
         # wave heights are calculated from peak to trough
         accompanying_extrema = self.find_accompanying_false_extrema()
-        extrema = self.raw_disp.join(accompanying_extrema)
+        self.raw_disp['accompanying_false_extrema'] = accompanying_extrema
+        extrema = self.raw_disp
         extrema.save('pre_extrema')
         extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
         extrema = extrema.ix[extrema['signal_error']==False]
@@ -99,8 +100,7 @@ class Wave_Stats:
         boolean_array = self.raw_disp.index == indexes[0]
         for x in indexes[1:]:
             boolean_array += self.raw_disp.index == x
-        return pd.DataFrame(boolean_array, index = self.raw_disp.index, 
-                            columns = ['accompanying_false_extrema'])
+        return boolean_array
 
 
 class Get_Extrema():
@@ -256,6 +256,7 @@ class Get_Extrema():
         maxima_df = self.get_extrema_df(_max, index, 1 )
         minima_df = self.get_extrema_df(_min, index, -1 )
         extrema_df = pd.concat([maxima_df, minima_df])
+        print "extrema_df", len(extrema_df)
         raw_disp_with_extrema = self.raw_displacements.join(extrema_df)
         raw_disp_with_extrema = raw_disp_with_extrema.sort()
         self.raw_disp_with_extrema = raw_disp_with_extrema
@@ -272,25 +273,8 @@ class Error_Check():
         """
         print "start detect_error_waves"
         error_wave_mask = extrema_df['sig_qual']>0
-        error_waves_df = pd.DataFrame(error_wave_mask ,columns=['signal_error'], index = extrema_df.index )
-        # bad_extrem_indexes = np.where(error_wave_mask==True)
-        # bad_waves = []
-        # for index in bad_extrem_indexes[0]:
-            # extrema_type = extrema_df['extrema'].ix[index]
-            # bad_waves.append(index)
-            # if extrema_type == -1:
-                # bad_waves.append(index+1)
-            # else:
-                # bad_waves.append(index-1)	
-        # boolean_error_waves = []
-        # for element in range(len(extrema_df)):
-            # boolean_error_waves.append(False)
-        # boolean_error_waves_array = np.array(boolean_error_waves)
-        # for element in bad_waves:
-            # boolean_error_waves_array[element] = True
-        # error_waves_df = pd.DataFrame(boolean_error_waves_array ,columns=['signal_error'], index = extrema_df.index )
-        extrems_plus_errors = extrema_df.join(error_waves_df)
-        extrems_plus_errors = extrems_plus_errors.sort()
+        extrema_df['signal_error'] = error_wave_mask
+        extrems_plus_errors = extrema_df.sort()
         extrems_plus_errors.save('self.extrems_plus_errors_with_extrema_and_errors')	
         self.extrema_with_errors = extrems_plus_errors
 
@@ -332,11 +316,10 @@ class Error_Check():
             if len(mask) != 0:
                 four_times_std_heave_30_mins.append(mask)    
         flat_four_times_std = pd.concat(four_times_std_heave_30_mins)
-        flat_four_times_std.name=['>4*std']
-        flat_four_times_std = pd.DataFrame(flat_four_times_std)
-        raw_plus_std = self.extrema_with_errors.join(flat_four_times_std)
-        raw_plus_std.save('raw_plus_std')
-        self.raw_plus_std = raw_plus_std
+        self.extrema_with_errors['>4*std'] = flat_four_times_std
+        self.extrema_with_errors.save('raw_plus_std')
+        self.raw_plus_std = self.extrema_with_errors
+        print self.raw_plus_std
 
 class Load_Raw_Files:
     
