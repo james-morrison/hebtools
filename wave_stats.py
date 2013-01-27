@@ -6,16 +6,16 @@ import calendar
 
 class Wave_Stats:
     
-    def __init__(self, raw_disp):    
+    def __init__(self, raw_disp, column_name = 'heave', error_check = True):    
         self.raw_disp = raw_disp
-        self.calc_stats()
-        self.get_zero_upcross_periods()
+        self.calc_stats(column_name, error_check)
+        self.get_zero_upcross_periods(column_name)
     
-    def get_zero_upcross_periods(self):
+    def get_zero_upcross_periods(self, column_name):
         print("start get_zero_upcross_periods")
         """ Based on code from https://gist.github.com/255291"""
         timestamps = [calendar.timegm(x.utctimetuple()) for x in self.raw_disp.index]
-        heave = self.raw_disp['heave']
+        heave = self.raw_disp[column_name]
         indices = find((heave[1:]>=0)&(heave[:-1]<0))
         crossings = [i - heave[i] / (heave[i+1] - heave[i]) for i in indices]
         np.save('crossings',crossings)
@@ -34,19 +34,22 @@ class Wave_Stats:
         df = pd.DataFrame(zero_upcross_periods, index = zero_crossing_timestamps[:-1])
         df.save('zero_crossing_dataframe')    
         
-    def calc_stats(self):
+    def calc_stats(self, column_name, error_check):
         print("start calc_stats")
         # wave heights are calculated from peak to trough
-        accompanying_extrema = self.find_accompanying_false_extrema()
-        self.raw_disp['accompanying_false_extrema'] = accompanying_extrema
-        extrema = self.raw_disp
-        extrema.save('pre_extrema')
-        extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
-        extrema = extrema.ix[extrema['signal_error']==False]
-        extrema = extrema.ix[extrema['>4*std']==False]
-        extrema = extrema.ix[extrema['accompanying_false_extrema']==False]
-        extrema.save('extrema')
-        differences = np.ediff1d(np.array(extrema['heave']))
+        if error_check:
+            accompanying_extrema = self.find_accompanying_false_extrema()
+            self.raw_disp['accompanying_false_extrema'] = accompanying_extrema
+            extrema = self.raw_disp
+            extrema.save('pre_extrema')
+            extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
+            extrema = extrema.ix[extrema['signal_error']==False]
+            extrema = extrema.ix[extrema['>4*std']==False]
+            extrema = extrema.ix[extrema['accompanying_false_extrema']==False]
+            extrema.save('extrema')
+        else:
+            extrema = self.raw_disp
+        differences = np.ediff1d(np.array(extrema[column_name]))
         wave_height_timestamps = extrema.index[differences<0]
         wave_heights = np.absolute(differences[differences<0])
         wave_height_dataframe = pd.DataFrame(wave_heights, columns=['wave_height_cm'], index = wave_height_timestamps)    

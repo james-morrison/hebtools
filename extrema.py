@@ -3,9 +3,9 @@ import numpy as np
 
 class Get_Extrema():
 
-    def __init__(self, raw_displacements):    
+    def __init__(self, raw_displacements, column_name = 'heave'):    
         self.raw_displacements = raw_displacements
-        self.get_peaks()
+        self.get_peaks(column_name)
     
     def _datacheck_peakdetect(self, x_axis, y_axis):
         if x_axis is None:
@@ -146,9 +146,9 @@ class Get_Extrema():
                             columns = ['extrema'], 
                             index = extrema_timestamps)*extrema_type
     
-    def get_peaks(self):
+    def get_peaks(self, column_name):
         print("start get_peaks")
-        y = self.raw_displacements['heave']
+        y = self.raw_displacements[column_name]
         index = self.raw_displacements.index
         _max, _min = self.peakdetect(y)
         maxima_df = self.get_extrema_df(_max, index, 1 )
