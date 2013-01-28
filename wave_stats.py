@@ -6,10 +6,11 @@ import calendar
 
 class Wave_Stats:
     
-    def __init__(self, raw_disp, column_name = 'heave', error_check = True):    
+    def __init__(self, raw_disp, column_name = 'heave', error_check = True, series_name = 'wave_height_cm', df_file_name = 'wave_height_dataframe'):    
         self.raw_disp = raw_disp
-        self.calc_stats(column_name, error_check)
-        self.get_zero_upcross_periods(column_name)
+        self.calc_stats(column_name, error_check, series_name, df_file_name)
+        if error_check:
+            self.get_zero_upcross_periods(column_name)
     
     def get_zero_upcross_periods(self, column_name):
         print("start get_zero_upcross_periods")
@@ -34,7 +35,7 @@ class Wave_Stats:
         df = pd.DataFrame(zero_upcross_periods, index = zero_crossing_timestamps[:-1])
         df.save('zero_crossing_dataframe')    
         
-    def calc_stats(self, column_name, error_check):
+    def calc_stats(self, column_name, error_check, series_name, df_file_name):
         print("start calc_stats")
         # wave heights are calculated from peak to trough
         if error_check:
@@ -49,11 +50,13 @@ class Wave_Stats:
             extrema.save('extrema')
         else:
             extrema = self.raw_disp
+            extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
+
         differences = np.ediff1d(np.array(extrema[column_name]))
         wave_height_timestamps = extrema.index[differences<0]
         wave_heights = np.absolute(differences[differences<0])
-        wave_height_dataframe = pd.DataFrame(wave_heights, columns=['wave_height_cm'], index = wave_height_timestamps)    
-        wave_height_dataframe.save('wave_height_dataframe')
+        wave_height_dataframe = pd.DataFrame(wave_heights, columns=[series_name], index = wave_height_timestamps)    
+        wave_height_dataframe.save(df_file_name)
     
     def find_accompanying_false_extrema(self):
         # This function selects peaks, and for those with signal_error True or 
