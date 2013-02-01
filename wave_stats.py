@@ -3,6 +3,9 @@ from datetime import datetime
 from matplotlib.mlab import find
 import pandas as pd
 import calendar
+import logging
+import sys
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 class Wave_Stats:
     
@@ -13,7 +16,7 @@ class Wave_Stats:
             self.get_zero_upcross_periods(column_name)
     
     def get_zero_upcross_periods(self, column_name):
-        print("start get_zero_upcross_periods")
+        logging.info('start get_zero_upcross_periods')
         """ Based on code from https://gist.github.com/255291"""
         timestamps = [calendar.timegm(x.utctimetuple()) for x in self.raw_disp.index]
         heave = self.raw_disp[column_name]
@@ -35,19 +38,20 @@ class Wave_Stats:
         df = pd.DataFrame(zero_upcross_periods, index = zero_crossing_timestamps[:-1])
         df.save('zero_crossing_dataframe')    
         
+    def mask_df(self, df, columns, comparison_val = False):
+        for col in columns:
+            df = df[df[col]==comparison_val]
+        return df
+        
     def calc_stats(self, column_name, error_check, series_name, df_file_name):
         print("start calc_stats")
         # wave heights are calculated from peak to trough
         if error_check:
             accompanying_extrema = self.find_accompanying_false_extrema()
             self.raw_disp['accompanying_false_extrema'] = accompanying_extrema
-            extrema = self.raw_disp
-            extrema.save('pre_extrema')
-            extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
-            extrema = extrema.ix[extrema['signal_error']==False]
-            extrema = extrema.ix[extrema['>4*std']==False]
-            extrema = extrema.ix[extrema['accompanying_false_extrema']==False]
-            extrema.save('extrema')
+            extrema = self.raw_disp.ix[~np.isnan(self.raw_disp['extrema'])]
+            extrema = self.mask_df(extrema, ['signal_error', '>4*std',
+                                             'accompanying_false_extrema'])
         else:
             extrema = self.raw_disp
             extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
