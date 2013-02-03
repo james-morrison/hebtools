@@ -44,7 +44,7 @@ class Wave_Stats:
         return df
         
     def calc_stats(self, column_name, error_check, series_name, df_file_name):
-        print("start calc_stats")
+        logging.info("start calc_stats")
         # wave heights are calculated from peak to trough
         if error_check:
             accompanying_extrema = self.find_accompanying_false_extrema()
@@ -62,6 +62,32 @@ class Wave_Stats:
         wave_height_dataframe = pd.DataFrame(wave_heights, columns=[series_name], index = wave_height_timestamps)    
         wave_height_dataframe.save(df_file_name)
     
+    def get_false_extrema_index(self, extrema_type):
+        extrema = self.raw_disp[self.raw_disp['extrema']==extrema_type]
+        false_extrema = extrema[extrema['signal_error']==True]
+        false_extrema_std = extrema[extrema['>4*std']==True]
+        false_extrema = false_extrema.combine_first(false_extrema_std)
+        return extrema, false_extrema.index
+    
+#    def find_accompanying_false_extrema(self):
+#        # This function selects peaks, and for those with signal_error True or 
+#        # >4*std True masks the following trough and then for all troughs with
+#        # signal_error True or >4*std True mask the preceding peak
+#        peaks, false_peak_index = self.get_false_extrema_index(1)
+#        troughs, false_trough_index = self.get_false_extrema_index(-1)
+#        indexes = []
+#        for index_of_false_peak in false_peak_index:
+#            if len(troughs.ix[index_of_false_peak:])!=0:
+#                indexes.append(troughs.ix[index_of_false_peak:].ix[0].name)
+#        
+#        for index_of_false_trough in false_trough_index:
+#            if len(peaks.ix[:index_of_false_trough])!=0:
+#                indexes.append(peaks.ix[:index_of_false_trough].ix[-1].name)
+#        boolean_array = self.raw_disp.index == indexes[0]
+#        for x in indexes[1:]:
+#            boolean_array += self.raw_disp.index == x
+#        return boolean_array
+
     def find_accompanying_false_extrema(self):
         # This function selects peaks, and for those with signal_error True or 
         # >4*std True masks the following trough and then for all troughs with

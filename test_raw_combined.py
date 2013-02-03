@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Feb 01 12:31:48 2013
-
-@author: le12jm
+*
 """
 import unittest
 import os
