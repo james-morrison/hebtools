@@ -47,6 +47,7 @@ class Wave_Stats:
         logging.info("start calc_stats")
         # wave heights are calculated from peak to trough
         if error_check:
+            print "error_check"
             accompanying_extrema = self.find_accompanying_false_extrema()
             self.raw_disp['accompanying_false_extrema'] = accompanying_extrema
             extrema = self.raw_disp.ix[~np.isnan(self.raw_disp['extrema'])]
@@ -69,47 +70,23 @@ class Wave_Stats:
         false_extrema = false_extrema.combine_first(false_extrema_std)
         return extrema, false_extrema.index
     
-#    def find_accompanying_false_extrema(self):
-#        # This function selects peaks, and for those with signal_error True or 
-#        # >4*std True masks the following trough and then for all troughs with
-#        # signal_error True or >4*std True mask the preceding peak
-#        peaks, false_peak_index = self.get_false_extrema_index(1)
-#        troughs, false_trough_index = self.get_false_extrema_index(-1)
-#        indexes = []
-#        for index_of_false_peak in false_peak_index:
-#            if len(troughs.ix[index_of_false_peak:])!=0:
-#                indexes.append(troughs.ix[index_of_false_peak:].ix[0].name)
-#        
-#        for index_of_false_trough in false_trough_index:
-#            if len(peaks.ix[:index_of_false_trough])!=0:
-#                indexes.append(peaks.ix[:index_of_false_trough].ix[-1].name)
-#        boolean_array = self.raw_disp.index == indexes[0]
-#        for x in indexes[1:]:
-#            boolean_array += self.raw_disp.index == x
-#        return boolean_array
-
     def find_accompanying_false_extrema(self):
-        # This function selects peaks, and for those with signal_error True or 
-        # >4*std True masks the following trough and then for all troughs with
-        # signal_error True or >4*std True mask the preceding peak
-        peaks = self.raw_disp[self.raw_disp['extrema']==1]
-        false_peaks = peaks[peaks['signal_error']==True]
-        false_peaks_std = peaks[peaks['>4*std']==True]
-        false_peaks = false_peaks.combine_first(false_peaks_std)
-        false_peak_index = false_peaks.index
-        troughs = self.raw_disp[self.raw_disp['extrema']==-1]
-        indexes = []
-        for index_of_false_peak in false_peak_index:
-            if len(troughs.ix[index_of_false_peak:])!=0:
-                indexes.append(troughs.ix[index_of_false_peak:].ix[0].name)
-        false_troughs = troughs[troughs['signal_error']==True]
-        false_troughs_std = troughs[troughs['>4*std']==True]
-        false_troughs.combine_first(false_troughs_std)
-        false_trough_index = false_troughs.index
-        for index_of_false_trough in false_trough_index:
-            if len(peaks.ix[:index_of_false_trough])!=0:
-                indexes.append(peaks.ix[:index_of_false_trough].ix[-1].name)
-        boolean_array = self.raw_disp.index == indexes[0]
-        for x in indexes[1:]:
-            boolean_array += self.raw_disp.index == x
-        return boolean_array
+       # This function selects peaks, and for those with signal_error True or 
+       # >4*std True masks the following trough and then for all troughs with
+       # signal_error True or >4*std True mask the preceding peak
+       peaks, false_peak_index = self.get_false_extrema_index(1)
+       troughs, false_trough_index = self.get_false_extrema_index(-1)
+       logging.info('false trough index: ' + str(len(false_trough_index)))
+       indexes = []
+       for index_of_false_peak in false_peak_index:
+           if len(troughs.ix[index_of_false_peak:])!=0:
+               indexes.append(troughs.ix[index_of_false_peak:].ix[0].name)
+       logging.info('indexes after false peak iteration: ' + str(len(indexes)))       
+       for index_of_false_trough in false_trough_index:
+           if len(peaks.ix[:index_of_false_trough])!=0:
+               indexes.append(peaks.ix[:index_of_false_trough].ix[-1].name)
+       logging.info('indexes after false trough iteration: ' + str(len(indexes)))
+       boolean_array = self.raw_disp.index == indexes[0]
+       for x in indexes[1:]:
+           boolean_array += self.raw_disp.index == x
+       return boolean_array

@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
-"""This modules takes a folder_path to a buoy month directory, iterates over the 
-files, creates a pandas DataFrame for each month and saves it in the month 
-folder. The pandas DataFrame is time indexed to nearest tenth of a second 
-second, with columns for signal_quality, heave, north, west. 
+"""The class Load_Raw_Files takes a buoy directory path as a parameter and the
+optional parameter of a year, the class will then iterate over the specified 
+years or months and load the raw files for each month into a time indexed 
+pandas DataFrame saved in that specific month folder. The DataFrame contains
+columns for signal status, heave, north, west. 
 
 A numpy file 'prob_files.npy' is saved containing a simple 1d array, listing 
-files which have structure errors, so their data is unable to be included in the 
-DataFrame. The heave timeseries of the DataFrame is then checked to find peaks
-and troughs, those identified are then added as a column 'extrema' to the 
-orginal data and saved again. 
+files which have structure errors, meaning their data is unable to be 
+included in the DataFrame. 
 
-Data which has a non zero status signal and values which deviate more than four
-times from the standard deviation are then masked from calculations. The masked
-data containing extrema is then used to calculate, wave heights and zero 
-crossing periods along with their approximate timestamps.
+The module extrema is then called checked to find local peaks and troughs, 
+those identified are then added as a column 'extrema' to the orginal DataFrame. 
+
+Local extrema which have a non zero status signal and values which deviate more
+than four times from the standard deviation and their corresponding local 
+extrema are then masked from calculations. The module wave_stats uses the 
+masked displacement data is then used to calculate a time series of wave 
+heights and unmasked zero crossing periods.
 
 @author: James Morrison
 @license: MIT
@@ -24,6 +27,7 @@ import calendar
 from datetime import datetime
 import os
 import glob
+import sys
 import pandas as pd
 import wave_stats
 import error_check

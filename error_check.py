@@ -3,7 +3,8 @@ import pandas as pd
 
 class Error_Check():
 
-    def __init__(self, extrema_df):    
+    def __init__(self, extrema_df, sigma = 4):
+        self.sigma = sigma
         self.detect_error_waves(extrema_df)
         self.detect_4_by_std()
         
@@ -21,13 +22,13 @@ class Error_Check():
     def compare_std(self, disp_set):
         """Compare values with the calculated four times standard deviation, 
         returning a boolean array, if any values exceeds the comparison, 
-        that value for that record is stored as True, with the implication
-        that the record should be masked
+        that value for that record is stored as True, with the implication 
+        being that the record should be masked
         """
         mask = np.array([])
         columns = ['heave', 'north', 'west']
         for column in columns:
-            four_times_heave_std = disp_set[column].std() * 4
+            four_times_heave_std = disp_set[column].std() * self.sigma
             if not np.isnan(four_times_heave_std):
                 if len(mask)==0:
                     mask = disp_set[column].abs() > four_times_heave_std
@@ -50,6 +51,7 @@ class Error_Check():
             end_index = x+raw_set_length
             if end_index > len(self.extrema_with_errors):
                 disp_set = self.extrema_with_errors.ix[x:]
+                
             else:
                 disp_set = self.extrema_with_errors.ix[x:end_index]
             mask = self.compare_std(disp_set)
