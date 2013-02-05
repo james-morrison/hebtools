@@ -15,14 +15,14 @@ class Test_DataFrames(unittest.TestCase):
 
     def setUp(self):
         try:        
-            folder_path = 'D:\New_Datawell\Siadar_HebMarine1'
-            raw_combined.Load_Raw_Files(folder_path,2013)
+            folder_path = 'D:\New_Datawell\\buoy_data'
+            raw_combined.Load_Raw_Files(folder_path,2005)
         except WindowsError:
             print "Load Raw Files failed"
 
     def test_wave_height_dataframe(self):
         wave_height_dataframe = pd.load('wave_height_dataframe')
-        self.assertEqual(len(wave_height_dataframe),370746)
+        self.assertEqual(len(wave_height_dataframe),319118)
         
 if __name__=='__main__':
     unittest.main()    
