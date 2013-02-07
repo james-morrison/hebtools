@@ -43,50 +43,38 @@ class Wave_Stats:
             df = df[df[col]==comparison_val]
         return df
         
+    def bad_subset(self, subset):
+        if np.sum(subset['signal_error']==True) > 0:
+            return True
+        elif np.sum(subset['>4*std']==True) > 0:
+            return True
+        else:
+            return False
+            
     def calc_stats(self, column_name, error_check, series_name, df_file_name):
         logging.info("start calc_stats")
         # wave heights are calculated from peak to trough
-        if error_check:
-            print "error_check"
-            accompanying_extrema = self.find_accompanying_false_extrema()
-            self.raw_disp['accompanying_false_extrema'] = accompanying_extrema
-            extrema = self.raw_disp.ix[~np.isnan(self.raw_disp['extrema'])]
-            extrema = self.mask_df(extrema, ['signal_error', '>4*std',
-                                             'accompanying_false_extrema'])
-        else:
-            extrema = self.raw_disp
-            extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
-
+        extrema = self.raw_disp
+        print extrema
+        extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
         differences = np.ediff1d(np.array(extrema[column_name]))
         wave_height_timestamps = extrema.index[differences<0]
         wave_heights = np.absolute(differences[differences<0])
+        print wave_heights
         wave_height_dataframe = pd.DataFrame(wave_heights, columns=[series_name], index = wave_height_timestamps)    
+        if error_check:
+            """Filter wave heights on the basis of any true values occuring for 
+            signal_error or >4*std, grab the time index of a wave height
+            and the timestamp of the next wave height and check the interval
+            between them for >4*std or signal_error true and if so remove the
+            wave height"""
+            bad_wave_index = []
+            for index, wave_height in enumerate(wave_height_dataframe.iterrows()):
+                if index+1 < len(wave_height_dataframe):
+                    subset = self.raw_disp.ix[wave_height[0]:wave_height_dataframe.ix[index+1].name]
+                    result = self.bad_subset(subset)
+                    if result:
+                        bad_wave_index.append(wave_height[0])
         wave_height_dataframe.save(df_file_name)
-    
-    def get_false_extrema_index(self, extrema_type):
-        extrema = self.raw_disp[self.raw_disp['extrema']==extrema_type]
-        false_extrema = extrema[extrema['signal_error']==True]
-        false_extrema_std = extrema[extrema['>4*std']==True]
-        false_extrema = false_extrema.combine_first(false_extrema_std)
-        return extrema, false_extrema.index
-    
-    def find_accompanying_false_extrema(self):
-       # This function selects peaks, and for those with signal_error True or 
-       # >4*std True masks the following trough and then for all troughs with
-       # signal_error True or >4*std True mask the preceding peak
-       peaks, false_peak_index = self.get_false_extrema_index(1)
-       troughs, false_trough_index = self.get_false_extrema_index(-1)
-       logging.info('false trough index: ' + str(len(false_trough_index)))
-       indexes = []
-       for index_of_false_peak in false_peak_index:
-           if len(troughs.ix[index_of_false_peak:])!=0:
-               indexes.append(troughs.ix[index_of_false_peak:].ix[0].name)
-       logging.info('indexes after false peak iteration: ' + str(len(indexes)))       
-       for index_of_false_trough in false_trough_index:
-           if len(peaks.ix[:index_of_false_trough])!=0:
-               indexes.append(peaks.ix[:index_of_false_trough].ix[-1].name)
-       logging.info('indexes after false trough iteration: ' + str(len(indexes)))
-       boolean_array = self.raw_disp.index == indexes[0]
-       for x in indexes[1:]:
-           boolean_array += self.raw_disp.index == x
-       return boolean_array
+        filterd_wave_height_df = wave_height_dataframe.drop(bad_wave_index)
+        filterd_wave_height_df.save(df_file_name)
