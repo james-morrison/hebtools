@@ -50,31 +50,36 @@ class Wave_Stats:
             return True
         else:
             return False
-            
+    
+    def filter_wave_height_dataframe(self, wave_height_dataframe):
+        """Filter wave heights on the basis of any true values occuring for 
+        signal_error or >4*std, grab the time index of a wave height
+        and the timestamp of the next wave height and check the interval
+        between them for >4*std or signal_error true and if so remove the
+        wave height"""
+        bad_wave_index = []
+        for index, wave_height in enumerate(wave_height_dataframe.iterrows()):
+            if index+1 < len(wave_height_dataframe):
+                subset = self.raw_disp.ix[wave_height[0]:wave_height_dataframe.ix[index+1].name]
+                result = self.bad_subset(subset)
+                if result:
+                    bad_wave_index.append(wave_height[0])
+                    bad_wave_index.append(wave_height_dataframe.ix[index+1].name)
+        return wave_height_dataframe.drop(bad_wave_index)
+    
     def calc_stats(self, column_name, error_check, series_name, df_file_name):
         logging.info("start calc_stats")
         # wave heights are calculated from peak to trough
         extrema = self.raw_disp
-        print extrema
         extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
         differences = np.ediff1d(np.array(extrema[column_name]))
         wave_height_timestamps = extrema.index[differences<0]
         wave_heights = np.absolute(differences[differences<0])
-        print wave_heights
-        wave_height_dataframe = pd.DataFrame(wave_heights, columns=[series_name], index = wave_height_timestamps)    
-        if error_check:
-            """Filter wave heights on the basis of any true values occuring for 
-            signal_error or >4*std, grab the time index of a wave height
-            and the timestamp of the next wave height and check the interval
-            between them for >4*std or signal_error true and if so remove the
-            wave height"""
-            bad_wave_index = []
-            for index, wave_height in enumerate(wave_height_dataframe.iterrows()):
-                if index+1 < len(wave_height_dataframe):
-                    subset = self.raw_disp.ix[wave_height[0]:wave_height_dataframe.ix[index+1].name]
-                    result = self.bad_subset(subset)
-                    if result:
-                        bad_wave_index.append(wave_height[0])
+        wave_height_dataframe = pd.DataFrame(wave_heights, columns=[series_name], index = wave_height_timestamps)
+        print wave_height_dataframe.describe()
+        if error_check:        
+            wave_height_dataframe = self.filter_wave_height_dataframe(wave_height_dataframe)
         wave_height_dataframe.save(df_file_name)
-        filterd_wave_height_df = wave_height_dataframe.drop(bad_wave_index)
-        filterd_wave_height_df.save(df_file_name)
+        print wave_height_dataframe.describe()
+        
+        

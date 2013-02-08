@@ -18,8 +18,9 @@ import numpy as np
 import time
 from datetime import datetime
 
-buoys = ['Roag_Wavegen','Bragar_HebMarine2','Siadar_HebMarine1']
-buoys_root_path = 'D:\\New_Datawell\\'
+#buoys = ['Roag_Wavegen','Bragar_HebMarine2','Siadar_HebMarine1']
+buoys = ['buoy_data']
+buoys_root_path = ''
 awac_root_path = 'D:\\awac_time_series\\'
 time_based_stats = True
 
@@ -27,23 +28,25 @@ def timestamp_to_nearest_half_hour(timestamp, set_length_seconds):
     unix_timestamp = time.mktime(timestamp.timetuple())
     return round(unix_timestamp/set_length_seconds)*set_length_seconds
 
-def arrays_to_df_excel(stats_dict, buoy_name):
+def arrays_to_df_excel(stats_dict, buoy_name, path):
     index_df = pd.DatetimeIndex(stats_dict['start_times'])
     end_df = pd.DataFrame(stats_dict['end_times'], index=index_df, columns=['end_times'])
     h_1_3_mean_df = pd.DataFrame(stats_dict['h_1_3_mean'], index=index_df, 
                                  columns=['h_1_3_mean'])
     h_max_df = pd.DataFrame(stats_dict['h_max'], index=index_df, columns=['h_max'])
-    set_df = h_max_df.join([h_1_3_mean_df,end_df])
-    set_df.save(awac_root_path + 'wave_h_' + str(stats_dict['set_size']) + 
+    h_avg_df = pd.DataFrame(stats_dict['h_avg'], index=index_df, columns=['h_avg'])
+    h_std_df = pd.DataFrame(stats_dict['h_std'], index=index_df, columns=['h_std'])
+    set_df = h_max_df.join([h_1_3_mean_df, h_avg_df, h_std_df, end_df])
+    set_df.save(path + 'wave_h_' + str(stats_dict['set_size']) + 
                 'set_' + buoy_name)
-    set_df.to_excel(awac_root_path + 'wave_h_' + str(stats_dict['set_size']) + 'set_' + 
+    set_df.to_excel(path + 'wave_h_' + str(stats_dict['set_size']) + 'set_' + 
                     buoy_name + '.xlsx')
  
 def get_stats_from_df(large_dataframe, series_name, half_hourly = True):
     large_dataframe = large_dataframe.sort()
     
     stats_dict = {'start_times':[], 'end_times':[], 'h_max':[], 
-                        'h_1_3_mean':[]}
+                  'h_1_3_mean':[], 'h_avg':[], 'h_std':[]}
     if time_based_stats:                        
         
         timestamp = large_dataframe.ix[0].name
@@ -72,6 +75,8 @@ def get_stats_from_df(large_dataframe, series_name, half_hourly = True):
             stats_dict['start_times'].append(subset.index[0])
             stats_dict['end_times'].append(subset.index[-1])
             stats_dict['h_1_3_mean'].append(subset[series_name].order()[-(len(subset)/3):].mean())
+            stats_dict['h_avg'].append(subset.mean()[0])
+            stats_dict['h_std'].append(subset.std()[0])
             stats_dict['h_max'].append(subset.max()[0])
     "finished stats"
     return stats_dict          
@@ -95,13 +100,14 @@ def iterate_over_buoys(buoys):
                                                          wave_height_df])
         large_dataframe.save('large_wave_height_df')
         stats_dict = get_stats_from_df(large_dataframe, "wave_height_cm")
-        arrays_to_df_excel(stats_dict, buoy_name)
+        arrays_to_df_excel(stats_dict, buoy_name, buoys_root_path)
         
 def process_awac_wave_height():
     #concat all three datasets from the hebmarine awac together
-    wave_height_df = pd.load('D:\\awac_time_series\\hebmarine_awac_full_wave_height_dataframe')
+    os.chdir(awac_root_path)
+    wave_height_df = pd.load('hebmarine_awac_full_wave_height_dataframe')
     stats_dict = get_stats_from_df(wave_height_df, "wave_height_decibar")
-    arrays_to_df_excel(stats_dict, 'hebmarine_awac')
+    arrays_to_df_excel(stats_dict, 'hebmarine_awac', awac_root_path)
         
 iterate_over_buoys(buoys)    
 #process_awac_wave_height()
