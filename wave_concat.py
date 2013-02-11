@@ -41,45 +41,36 @@ def arrays_to_df_excel(stats_dict, buoy_name, path):
                 'set_' + buoy_name)
     set_df.to_excel(path + 'wave_h_' + str(stats_dict['set_size']) + 'set_' + 
                     buoy_name + '.xlsx')
- 
-def get_stats_from_df(large_dataframe, series_name, half_hourly = True):
+
+
+def get_stats_from_df(large_dataframe, series_name):
+    date_time_col = 'date_time_index'
     large_dataframe = large_dataframe.sort()
-    
-    stats_dict = {'start_times':[], 'end_times':[], 'h_max':[], 
-                  'h_1_3_mean':[], 'h_avg':[], 'h_std':[]}
-    if time_based_stats:                        
-        
-        timestamp = large_dataframe.ix[0].name
-        last_timestamp = large_dataframe.ix[-1].name
-        if half_hourly:
-            time_set = 1800 
-            first_nearest_halfhour = timestamp_to_nearest_half_hour(timestamp, time_set)
-            last_nearest_halfhour = timestamp_to_nearest_half_hour(last_timestamp, time_set)
-            index = np.arange(first_nearest_halfhour, last_nearest_halfhour, time_set)
-            set_size = 'half_hour'
-        else: 
-            time_set = 3600
-            index = np.arange(time.mktime(timestamp.timetuple()), time.mktime(last_timestamp.timetuple()), time_set)
-            set_size = 'hour'
-        stats_dict['set_size'] = set_size
-    else:
-        set_size = 100
-        stats_dict['set_size'] = set_size
-        index = np.arange(set_size,len(large_dataframe),set_size)
-    for x in index:
-        if time_based_stats:                   
-            subset = large_dataframe.ix[datetime.utcfromtimestamp(x-time_set):datetime.utcfromtimestamp(x)]
-        else:
-            subset = large_dataframe.ix[x-set_size:x]
-        if len(subset) != 0:
-            stats_dict['start_times'].append(subset.index[0])
-            stats_dict['end_times'].append(subset.index[-1])
-            stats_dict['h_1_3_mean'].append(subset[series_name].order()[-(len(subset)/3):].mean())
-            stats_dict['h_avg'].append(subset.mean()[0])
-            stats_dict['h_std'].append(subset.std()[0])
-            stats_dict['h_max'].append(subset.max()[0])
-    "finished stats"
-    return stats_dict          
+    reset_index_df = large_dataframe.reset_index()
+    cols = reset_index_df.columns.values
+    cols[0] = date_time_col
+    reset_index_df.columns = cols
+    grouped_df = reset_index_df.groupby('file_name')
+    file_name_std_df = grouped_df[series_name].std()
+    file_name_std_df.name = 'h_std'
+    file_name_max_series = grouped_df[series_name].max()
+    file_name_max_series.name = 'h_max'
+    file_name_avg_series = grouped_df[series_name].mean()
+    file_name_avg_series.name = 'h_avg'
+    file_name_end_series = grouped_df[date_time_col].last()
+    file_name_df_time_indexed = pd.DataFrame(file_name_end_series.index.values, columns = ['end_times'],
+                                             index=grouped_df[date_time_col].first().values)
+    print "file_name_df_time_indexed", file_name_df_time_indexed.ix[0]
+    file_name_max_series = pd.DataFrame(file_name_max_series).join(pd.DataFrame(file_name_avg_series))
+    file_name_max_series = file_name_max_series.join(pd.DataFrame(file_name_std_df))
+    file_name_max_series.index = grouped_df[date_time_col].first().values
+    file_names_df = pd.DataFrame(grouped_df.file_name.values.values, columns = ['file_names'],
+                                 index=grouped_df[date_time_col].first().values)
+    file_name_max_series = file_name_max_series.join(file_names_df)
+    print file_name_max_series
+    print file_name_df_time_indexed
+    file_name_df_max = file_name_df_time_indexed.join(file_name_max_series)
+    print file_name_df_max.ix[0]
 
 def iterate_over_buoys(buoys):
     for buoy_name in buoys:

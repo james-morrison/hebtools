@@ -72,10 +72,14 @@ class Wave_Stats:
         # wave heights are calculated from peak to trough
         extrema = self.raw_disp
         extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
+        extrema.save('check_extrema')
         differences = np.ediff1d(np.array(extrema[column_name]))
         wave_height_timestamps = extrema.index[differences<0]
+        file_names = extrema.file_name[differences<0]
         wave_heights = np.absolute(differences[differences<0])
         wave_height_dataframe = pd.DataFrame(wave_heights, columns=[series_name], index = wave_height_timestamps)
+        file_name_df = pd.DataFrame(file_names, columns=['file_name'], index = wave_height_timestamps)
+        wave_height_dataframe = wave_height_dataframe.join(file_name_df)
         print wave_height_dataframe.describe()
         if error_check:        
             wave_height_dataframe = self.filter_wave_height_dataframe(wave_height_dataframe)
