@@ -43,13 +43,13 @@ def arrays_to_df_excel(stats_dict, buoy_name, path):
                     buoy_name + '.xlsx')
 
 
-def get_stats_from_df(large_dataframe, series_name):
-    date_time_col = 'date_time_index'
+def get_stats_from_df(large_dataframe, series_name, path):
+    new_cols = ['date_time_index']
     large_dataframe = large_dataframe.sort()
     reset_index_df = large_dataframe.reset_index()
     cols = reset_index_df.columns.values
-    cols[0] = date_time_col
-    reset_index_df.columns = cols
+    [new_cols.append(x) for x in cols[1:]]
+    reset_index_df.columns = new_cols
     grouped_df = reset_index_df.groupby('file_name')
     file_name_std_df = grouped_df[series_name].std()
     file_name_std_df.name = 'h_std'
@@ -57,21 +57,19 @@ def get_stats_from_df(large_dataframe, series_name):
     file_name_max_series.name = 'h_max'
     file_name_avg_series = grouped_df[series_name].mean()
     file_name_avg_series.name = 'h_avg'
-    file_name_end_series = grouped_df[date_time_col].last()
-    file_name_df_time_indexed = pd.DataFrame(file_name_end_series.index.values, columns = ['end_times'],
-                                             index=grouped_df[date_time_col].first().values)
-    print "file_name_df_time_indexed", file_name_df_time_indexed.ix[0]
+    file_name_end_series = grouped_df[new_cols[0]].last()
+    file_name_df_time_indexed = pd.DataFrame(file_name_end_series.values, columns = ['end_times'],
+                                             index=grouped_df[new_cols[0]].first().values)
     file_name_max_series = pd.DataFrame(file_name_max_series).join(pd.DataFrame(file_name_avg_series))
     file_name_max_series = file_name_max_series.join(pd.DataFrame(file_name_std_df))
-    file_name_max_series.index = grouped_df[date_time_col].first().values
-    file_names_df = pd.DataFrame(grouped_df.file_name.values.values, columns = ['file_names'],
-                                 index=grouped_df[date_time_col].first().values)
+    file_name_max_series.index = grouped_df[new_cols[0]].first().values
+    file_names_df = pd.DataFrame(grouped_df.file_name.size().index, columns = ['file_names'],
+                                 index=grouped_df[new_cols[0]].first().values)
     file_name_max_series = file_name_max_series.join(file_names_df)
-    print file_name_max_series
-    print file_name_df_time_indexed
     file_name_df_max = file_name_df_time_indexed.join(file_name_max_series)
-    print file_name_df_max.ix[0]
-
+    file_name_df_max.to_excel(path + 'wave_h_groupby.xlsx')
+    file_name_df_max.save(path + 'stats_groupby_df')
+    
 def iterate_over_buoys(buoys):
     for buoy_name in buoys:
         buoy_path = buoys_root_path + buoy_name
@@ -90,15 +88,15 @@ def iterate_over_buoys(buoys):
                             large_dataframe = pd.concat([large_dataframe, 
                                                          wave_height_df])
         large_dataframe.save('large_wave_height_df')
-        stats_dict = get_stats_from_df(large_dataframe, "wave_height_cm")
-        arrays_to_df_excel(stats_dict, buoy_name, buoys_root_path)
+        stats_dict = get_stats_from_df(large_dataframe, "wave_height_cm", buoys_root_path)
+        #arrays_to_df_excel(stats_dict, buoy_name, buoys_root_path)
         
 def process_awac_wave_height():
     #concat all three datasets from the hebmarine awac together
     os.chdir(awac_root_path)
     wave_height_df = pd.load('hebmarine_awac_full_wave_height_dataframe')
     stats_dict = get_stats_from_df(wave_height_df, "wave_height_decibar")
-    arrays_to_df_excel(stats_dict, 'hebmarine_awac', awac_root_path)
+    #arrays_to_df_excel(stats_dict, 'hebmarine_awac', awac_root_path)
         
 iterate_over_buoys(buoys)    
 #process_awac_wave_height()
