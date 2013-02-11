@@ -90,6 +90,8 @@ class Load_Raw_Files:
                 if returned_record:
                     records.append(returned_record)
             raw_array = pd.DataFrame(records,columns=raw_cols,dtype=np.int)
+            file_name_df = pd.DataFrame([filepath]*len(records),columns=['file_name'])
+            raw_array = raw_array.join(file_name_df)
         except StopIteration:
             print(filepath, "StopIteration")
             return None, True
@@ -98,6 +100,7 @@ class Load_Raw_Files:
             print("Possibly serious errors in transmission")
             return None, True
         raw_array.index = self.get_rounded_timestamps(filepath, len(raw_array))
+        
         return raw_array, False
         
     def parse_record(self, record):
@@ -105,15 +108,13 @@ class Load_Raw_Files:
         # Checking that record is valid format
         if len(record_list) == 4:
             new_array = []
-            bad_record = False
             for value in record_list:
                 value = value.strip()
                 if value == '' or 'E' in value:
-                    bad_record = True
+                    return None
                 else:
                     new_array.append(long(value.strip('\n')))
-            if not bad_record:
-                return new_array
+            return new_array
         return None
     
     def iterate_over_years(self, folder_path):
