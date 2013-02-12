@@ -1,5 +1,5 @@
 The project processes raw **[Datawell Waverider](http://www.datawell.nl)** 
-files into a flexible time series. The code allow easier calculation of 
+files into a flexible time series. The code allows easier calculation of 
 statistics from the displacment data, more sophisticated masking of improbable
 data and the ability to deal with larger timeseries than is available from 
 existing software. The same code is also used to process pressure data from 
