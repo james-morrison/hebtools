@@ -29,15 +29,15 @@ trough.
 
 **problem\_file\_concat.py** module produces a csv file with the filenames of 
 all raw files that could not be processed, this module can be run after 
-'raw_combined'.
+**raw_combined.py**.
 
-**wave\_concat.py** module can be run after 'raw_combined' to create a complete
-dataframe of all wave heights timestamped and sorted temporally for each buoy.
-Statistics are then generated on wave sets derived from the complete dataframe 
-which are then exported as an Excel workbook ( .xlsx file ). This module 
-requires a directory path that contains buoy directories and their names, the 
-set size used for statistic calculation can be by number of waves or time 
-interval.
+**wave\_concat.py** module can be run after **raw_combined.py** to create a 
+complete dataframe of all wave heights timestamped and sorted temporally for 
+each buoy. Statistics are then generated on wave sets derived from the complete
+dataframe which are then exported as an Excel workbook ( .xlsx file ). This 
+module requires a directory path that contains buoy directories and their 
+names, the set size used for statistic calculation can be by number of waves or
+time interval.
 
 **wad\_to\_dataframe.py** is a module than can process a Nortek AWAC wad file. 
 The pressure column can be then be processed in the same way as the Waverider 
