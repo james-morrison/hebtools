@@ -22,9 +22,9 @@ half hour period, e.g. for the file Buoy_Name}2011-12-05T18h30Z.raw  the first
 record will have a timestamp of 18:30:00 ( Hours:Minutes:Seconds ).  
 
 Peak and troughs are detected for the heave values in the 'extrema' module then
-masking is applied to data that has quality issues, wave heights and zero 
-crossing periods are calculated. Wave heights are calculated from peak to 
-trough in the 'wave_stats' module.
+masking is applied to data that has quality issues in the *error_check* module. 
+In the *wave_stats* module wave heights and zero crossing periods are 
+calculated, wave heights are calculated from peak to trough.
 
 'problem_file_concat' module produces a csv file with the filenames of all
 raw files that could not be processed, this module can be run after 
