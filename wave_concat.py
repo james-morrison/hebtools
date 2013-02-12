@@ -4,7 +4,9 @@ Given a buoy root directory and buoy name the code will iterate over a list of
 buoys producing statistics for the concatenated wave_height_dataframes 
 including h_max, h_1_3_mean and the time period these statistics cover. The 
 statistics are then saved as a Pandas DataFrame and exported to Excel xlsx 
-format. This process can also be carried out for the pressure data from a 
+format. 
+
+This process can also be carried out for the pressure data from a 
 Nortek AWAC in process_awac_wave_height given a wad file from 
 wad_to_dataframe.py 
 
@@ -62,11 +64,17 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
     max_series.name = 'h_max'
     avg_series = grouped_df[series_name].mean()
     avg_series.name = 'h_avg'
+    h_1_3_mean_series = grouped_df.wave_height_cm.apply(lambda x : x.order()[-(len(x)/3):].mean())    
+    h_1_3_mean_series.name = 'h_1_3_mean'
+    h_rms_series = grouped_df.wave_height_cm.apply(lambda x: np.sqrt((x**2).sum()/len(x)))
+    h_rms_series.name = 'h_rms'
+    print "h_rms_series", h_rms_series
     end_timestamps_series = grouped_df[new_cols[0]].last()
     end_timestamps_series.name = 'end_times'
     start_timestamps = grouped_df[new_cols[0]].first().values
     avg_max_std_end_df = pd.concat([std_series, max_series, avg_series, 
-                                    end_timestamps_series], axis=1)
+                                    end_timestamps_series, h_1_3_mean_series, 
+                                    h_rms_series], axis=1)
     avg_max_std_end_df.index = start_timestamps
     file_names_df = pd.DataFrame(grouped_df.file_name.size().index, 
                                  columns = ['file_names'], 

@@ -32,9 +32,9 @@ class Error_Check():
         grouped_displacements = self.extrema_with_errors.groupby('file_name')
         self.raw_plus_std = self.extrema_with_errors.join(grouped_displacements['heave','north','west'].std(), 
                                                           on='file_name', rsuffix='_file_std')                                  
-        heave_4_std = self.raw_plus_std.heave > ( self.raw_plus_std.heave_file_std * 4 )
-        north_4_std = self.raw_plus_std.north > ( self.raw_plus_std.north_file_std * 4 )
-        west_4_std = self.raw_plus_std.heave > ( self.raw_plus_std.west_file_std * 4 )
+        heave_4_std = self.raw_plus_std.heave > ( self.raw_plus_std.heave_file_std * self.sigma )
+        north_4_std = self.raw_plus_std.north > ( self.raw_plus_std.north_file_std * self.sigma )
+        west_4_std = self.raw_plus_std.heave > ( self.raw_plus_std.west_file_std * self.sigma )
         disp_more_than_4_std = heave_4_std + north_4_std + west_4_std
         self.raw_plus_std['>4*std'] = disp_more_than_4_std
         self.raw_plus_std.save('raw_plus_std')
