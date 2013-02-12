@@ -8,7 +8,7 @@ sensors detailed below.
 
 In the case of a Datawell Waverider buoy the data directory containing year 
 subfolders must be supplied to the main **raw_combined.py** module. The class 
-**Load\_Raw\_Files** then iterate through the years. Processing the records 
+**Load\_Raw\_Files** then iterates through the years. Processing the records 
 from the raw files into a pandas DataFrame for each month with columns 
 'sig\_qual', 'heave', 'north' and 'west' the index being a pandas 
 DateTimeIndex. An optional year parameter can be supplied to process a specifc
