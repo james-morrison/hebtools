@@ -48,7 +48,7 @@ heave displacement without the error correction.
 Wave_Stats classes, example buoy data is required to test, 1 month of 
 anonymised data is provided in **buoy\_data.zip**
 
-The project was developed with data recieved from Waverider MKII and MKIII 
+The project was developed with data received from Waverider MKII and MKIII 
 buoys with RFBuoy v2.1.27 producing the raw files. The AWAC was a 1MHz device
 and Storm v1.14 produced the wad files. The code was developed with the 
 assistance of the [Hebridean Marine Energy Futures](http://hebmarine.com) 
