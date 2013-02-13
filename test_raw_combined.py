@@ -10,7 +10,7 @@ import wave_stats
 
 print os.getcwd()
 
-number_of_waves = 313074
+number_of_waves = 313053
     
 class Test_Load_Raw_Files(unittest.TestCase):
 
