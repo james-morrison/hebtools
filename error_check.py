@@ -3,7 +3,7 @@ import pandas as pd
 
 class Error_Check():
 
-    def __init__(self, extrema_df, sigma = 4):
+    def __init__(self, extrema_df, sigma = 4 ):
         self.sigma = sigma
         self.detect_error_waves(extrema_df)
         self.detect_4_by_std()
@@ -29,7 +29,7 @@ class Error_Check():
         """
         print "detect_4_by_std"
         four_times_std_heave_30_mins = []
-        grouped_displacements = self.extrema_with_errors.groupby('file_name')
+        grouped_displacements = self.extrema_with_errors[self.extrema_with_errors['signal_error']==0].groupby('file_name')
         self.raw_plus_std = self.extrema_with_errors.join(grouped_displacements['heave','north','west'].std(), 
                                                           on='file_name', rsuffix='_file_std')                                  
         heave_4_std = self.raw_plus_std.heave > ( self.raw_plus_std.heave_file_std * self.sigma )
