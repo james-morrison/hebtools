@@ -67,12 +67,14 @@ class Load_Raw_Files:
         file_names = glob.glob('*.raw')
         file_names.sort()
         big_raw_array = pd.DataFrame(columns = raw_cols)
+        files = []
         for index, filepath in enumerate(file_names):
             raw_array, prob_file = self.iterate_over_file(filepath, raw_cols)
             if prob_file:
                 problem_files.append(filepath)
             else:
-                big_raw_array = big_raw_array.append( raw_array )
+                files.append( raw_array )
+        big_raw_array = pd.concat(files)
         big_raw_array.save('raw_buoy_displacement_pandas')  
         np.save("prob_files",np.array(problem_files))
         print("finish iterate_over_files")
