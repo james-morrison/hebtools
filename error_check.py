@@ -36,9 +36,9 @@ class Error_Check():
         self.raw_plus_std = self.displacements.join(standard_deviations, 
                                                           on='file_name', 
                                                           rsuffix='_file_std')                                  
-        heave_4_std = self.raw_plus_std.heave > ( self.raw_plus_std.heave_file_std * self.sigma )
-        north_4_std = self.raw_plus_std.north > ( self.raw_plus_std.north_file_std * self.sigma )
-        west_4_std = self.raw_plus_std.west > ( self.raw_plus_std.west_file_std * self.sigma )
+        heave_4_std = self.raw_plus_std.heave.abs() > ( self.raw_plus_std.heave_file_std * self.sigma )
+        north_4_std = self.raw_plus_std.north.abs() > ( self.raw_plus_std.north_file_std * self.sigma )
+        west_4_std = self.raw_plus_std.west.abs() > ( self.raw_plus_std.west_file_std * self.sigma )
         disp_more_than_4_std = heave_4_std + north_4_std + west_4_std
         self.raw_plus_std['>4*std'] = disp_more_than_4_std
         self.raw_plus_std.save('raw_plus_std')

@@ -63,14 +63,19 @@ class Wave_Stats:
         between them for >4*std or signal_error true and if so remove the
         wave height"""
         bad_wave_booleans = []
+        max_std_factor = []
         for index, wave_height in enumerate(wave_height_df.iterrows()):
             if index+1 < len(wave_height_df):
                 subset = self.raw_disp.ix[wave_height[0]:wave_height_df.ix[index+1].name]
                 bad_wave_booleans.append(self.bad_subset(subset))
+                max_std_factor.append(subset.max_std_factor.max())
         print len(bad_wave_booleans), wave_height_df
         bool_df = pd.DataFrame(bad_wave_booleans, columns=['bad_wave'],
                                index=wave_height_df.index[1:])
-        return wave_height_df.join(bool_df)
+        std_df = pd.DataFrame(max_std_factor, columns=['max_std_factor'],
+                               index=wave_height_df.index[1:])    
+        bool_std_df = pd.concat([bool_df, std_df],axis=1)                               
+        return wave_height_df.join(bool_std_df)
     
     def calc_stats(self, column_name, error_check, series_name, df_file_name):
         logging.info("start calc_stats")
