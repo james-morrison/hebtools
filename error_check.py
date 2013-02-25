@@ -16,7 +16,7 @@ class Error_Check():
         error_wave_mask = extrema_df['sig_qual']>0
         extrema_df['signal_error'] = error_wave_mask
         extrems_plus_errors = extrema_df.sort()
-        self.extrema_with_errors = extrems_plus_errors
+        self.displacements = extrems_plus_errors
     
     def detect_4_by_std(self):
         """This function groups the displacements in the DataFrame by filename
@@ -29,12 +29,15 @@ class Error_Check():
         """
         print "detect_4_by_std"
         four_times_std_heave_30_mins = []
-        grouped_displacements = self.extrema_with_errors[self.extrema_with_errors['signal_error']==0].groupby('file_name')
-        self.raw_plus_std = self.extrema_with_errors.join(grouped_displacements['heave','north','west'].std(), 
-                                                          on='file_name', rsuffix='_file_std')                                  
+        filtered_displacements = self.displacements[self.displacements['signal_error']==0]
+        grouped_displacements = filtered_displacements.groupby('file_name')
+        standard_deviations = grouped_displacements['heave','north','west'].std()
+        self.raw_plus_std = self.displacements.join(standard_deviations, 
+                                                          on='file_name', 
+                                                          rsuffix='_file_std')                                  
         heave_4_std = self.raw_plus_std.heave > ( self.raw_plus_std.heave_file_std * self.sigma )
         north_4_std = self.raw_plus_std.north > ( self.raw_plus_std.north_file_std * self.sigma )
-        west_4_std = self.raw_plus_std.heave > ( self.raw_plus_std.west_file_std * self.sigma )
+        west_4_std = self.raw_plus_std.west > ( self.raw_plus_std.west_file_std * self.sigma )
         disp_more_than_4_std = heave_4_std + north_4_std + west_4_std
         self.raw_plus_std['>4*std'] = disp_more_than_4_std
         self.raw_plus_std.save('raw_plus_std')
