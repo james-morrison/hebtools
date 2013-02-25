@@ -7,6 +7,7 @@ class Error_Check():
         self.sigma = sigma
         self.detect_error_waves(extrema_df)
         self.detect_4_by_std()
+        self.calc_std_factor()
         
     def detect_error_waves(self, extrema_df):
         """Find values with status signal problem and is a peak or trough,
@@ -42,3 +43,21 @@ class Error_Check():
         self.raw_plus_std['>4*std'] = disp_more_than_4_std
         self.raw_plus_std.save('raw_plus_std')
         print self.raw_plus_std
+        
+    def calc_std_factor(self):
+        heave_std_factor = (self.raw_plus_std.heave / self.raw_plus_std.heave_file_std).abs()
+        north_std_factor = (self.raw_plus_std.north / self.raw_plus_std.north_file_std).abs()
+        west_std_factor = (self.raw_plus_std.west / self.raw_plus_std.west_file_std).abs()
+        west_more_than_mask = (west_std_factor > heave_std_factor) & \
+                              (west_std_factor > north_std_factor)
+        north_more_than_mask = (north_std_factor > heave_std_factor) & \
+                               (north_std_factor > west_std_factor)
+        heave_more_than_mask = (heave_std_factor > west_std_factor) & \
+                               (heave_std_factor > north_std_factor)
+        heave_factors = heave_std_factor[heave_more_than_mask]
+        north_factors = north_std_factor[north_more_than_mask]
+        west_factors = west_std_factor[west_more_than_mask]
+        combined_factors = pd.concat([heave_factors,north_factors,west_factors])
+        combined_factors.name = 'max_std_factor'
+        self.raw_plus_std = self.raw_plus_std.join(combined_factors)
+        self.raw_plus_std.save('raw_plus_std')

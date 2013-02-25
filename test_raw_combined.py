@@ -16,7 +16,7 @@ class Test_Load_Raw_Files(unittest.TestCase):
        try:        
            folder_path = 'buoy_data'
            raw_combined.Load_Raw_Files(folder_path)
-       except Error:
+       except WindowsError:
            print "Load Raw Files failed"
 
    def test_wave_height_dataframe(self):
