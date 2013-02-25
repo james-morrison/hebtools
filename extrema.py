@@ -154,6 +154,7 @@ class Get_Extrema():
         maxima_df = self.get_extrema_df(_max, index, 1 )
         minima_df = self.get_extrema_df(_min, index, -1 )
         extrema_df = pd.concat([maxima_df, minima_df])
+        extrema_df.save('extrema_df')
         raw_disp_with_extrema = self.raw_displacements.join(extrema_df)
         raw_disp_with_extrema = raw_disp_with_extrema.sort()
         self.raw_disp_with_extrema = raw_disp_with_extrema
