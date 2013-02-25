@@ -58,7 +58,7 @@ Requires:
 
 - [Python 2.7](http://python.org/download/) ( developed and tested with 2.7.3 )
 - [Numpy](http://numpy.scipy.org)
-- [Pandas](http://pandas.pydata.org)
+- [Pandas](http://pandas.pydata.org) ( minimum 0.10.1 )
 - [Matplotlib](http://matplotlib.org)
 - [openpyxl](http://bitbucket.org/ericgazoni/openpyxl/src)
 

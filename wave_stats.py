@@ -72,6 +72,23 @@ class Wave_Stats:
                     bad_wave_index.append(wave_height[0])
                     bad_wave_index.append(wave_height_df.ix[index+1].name)
         return wave_height_df.drop(bad_wave_index)
+        
+    def check_wave_height_dataframe(self, wave_height_dataframe):
+        """Filter wave heights on the basis of any true values occuring for 
+        signal_error or >4*std, grab the time index of a wave height
+        and the timestamp of the next wave height and check the interval
+        between them for >4*std or signal_error true and if so remove the
+        wave height"""
+        bad_wave_booleans = []
+        for index, wave_height in enumerate(wave_height_dataframe.iterrows()):
+            if index+1 < len(wave_height_dataframe):
+                subset = self.raw_disp.ix[wave_height[0]:wave_height_dataframe.ix[index+1].name]
+                bad_wave_booleans.append(self.bad_subset(subset))
+        print len(bad_wave_booleans), wave_height_dataframe
+        bool_df = pd.DataFrame(bad_wave_booleans, columns=['bad_wave'],
+                               index=wave_height_dataframe.index[1:])
+        print bool_df, wave_height_dataframe
+        return wave_height_dataframe.join(bool_df)
     
     def calc_stats(self, column_name, error_check, series_name, df_file_name):
         logging.info("start calc_stats")
@@ -90,7 +107,7 @@ class Wave_Stats:
         wave_height_df = wave_height_df.join(file_name_df)
         print wave_height_df.describe()
         if error_check:        
-            wave_height_dataframe = self.filter_wave_heights(wave_height_df)
+            wave_height_dataframe = self.check_wave_height_dataframe(wave_height_dataframe)
         wave_height_df.save(df_file_name)
         print wave_height_df.describe()
         
