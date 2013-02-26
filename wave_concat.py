@@ -53,6 +53,7 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
     '''
     new_cols = ['date_time_index']
     large_dataframe = large_dataframe.sort()
+    large_dataframe = large_dataframe[large_dataframe.bad_wave==False]
     reset_index_df = large_dataframe.reset_index()
     cols = reset_index_df.columns.values
     [new_cols.append(x) for x in cols[1:]]
@@ -68,7 +69,6 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
     h_1_3_mean_series.name = 'h_1_3_mean'
     h_rms_series = grouped_df.wave_height_cm.apply(lambda x: np.sqrt((x**2).sum()/len(x)))
     h_rms_series.name = 'h_rms'
-    print "h_rms_series", h_rms_series
     end_timestamps_series = grouped_df[new_cols[0]].last()
     end_timestamps_series.name = 'end_times'
     start_timestamps = grouped_df[new_cols[0]].first().values

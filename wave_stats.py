@@ -71,9 +71,9 @@ class Wave_Stats:
                 max_std_factor.append(subset.max_std_factor.max())
         print len(bad_wave_booleans), wave_height_df
         bool_df = pd.DataFrame(bad_wave_booleans, columns=['bad_wave'],
-                               index=wave_height_df.index[1:])
+                               index=wave_height_df.index[:-1])
         std_df = pd.DataFrame(max_std_factor, columns=['max_std_factor'],
-                               index=wave_height_df.index[1:])    
+                               index=wave_height_df.index[:-1])    
         bool_std_df = pd.concat([bool_df, std_df],axis=1)                               
         return wave_height_df.join(bool_std_df)
     
@@ -84,11 +84,14 @@ class Wave_Stats:
         extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
         extrema.save('check_extrema')
         differences = np.ediff1d(np.array(extrema[column_name]))
+        np.save('differences',differences)
         wave_height_timestamps = extrema.index[differences<0]
         file_names = extrema.file_name[differences<0]
         wave_heights = np.absolute(differences[differences<0])
+        np.save('wave_heights',wave_heights)
         wave_height_df = pd.DataFrame(wave_heights, columns=[series_name],
                                       index = wave_height_timestamps)
+        print wave_height_df
         file_name_df = pd.DataFrame(file_names, columns=['file_name'], 
                                     index = wave_height_timestamps)
         wave_height_df = wave_height_df.join(file_name_df)
