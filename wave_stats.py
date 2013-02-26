@@ -49,11 +49,11 @@ class Wave_Stats:
         return df
         
     def bad_subset(self, subset):
-        if np.sum(subset['signal_error']==True) > 0:
-            return True
-        elif np.sum(subset['>4*std']==True) > 0:
-            return True
-        else:
+        #if np.sum(subset['signal_error']==True) > 0:
+        #    return True
+        #elif np.sum(subset['>4*std']==True) > 0:
+        #    return True
+        #else:
             return False
         
     def check_wave_height_dataframe(self, wave_height_df):

@@ -45,6 +45,11 @@ def arrays_to_df_excel(stats_dict, buoy_name, path):
                     buoy_name + '.xlsx')
 
 
+def filter_maximums(heave_std_series, max_series, multiple, grouped_df):
+    max_series[max_series>(heave_std_series*multiple)]
+    #max_series
+                        
+                    
 def get_stats_from_df_groupby(large_dataframe, series_name, path):
     '''Groups DataFrame by file_name, which should be approximately half hours
     Standard deviation, Maximum and Mean are extracted as series and joined 
@@ -53,9 +58,10 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
     '''
     new_cols = ['date_time_index']
     large_dataframe = large_dataframe.sort()
-    sigma = 3
+    sigma = 4
     #large_dataframe = large_dataframe[large_dataframe.bad_wave==False]
     large_dataframe = large_dataframe[large_dataframe.max_std_factor < sigma]
+    heave_std_multiple = np.sqrt(8*np.log10(len(large_dataframe)))
     reset_index_df = large_dataframe.reset_index()
     cols = reset_index_df.columns.values
     [new_cols.append(x) for x in cols[1:]]
@@ -63,21 +69,25 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
     grouped_df = reset_index_df.groupby('file_name')
     std_series = grouped_df[series_name].std()
     std_series.name = 'h_std'
-    max_series = grouped_df[series_name].max()
+    heave_file_std_series = grouped_df['heave_file_std'].first()
+    heave_file_std_series.name = 'heave_file_std'
+    max_series = grouped_df[series_name].max()    
     max_series.name = 'h_max'
+    #filter_maximums(heave_file_std_series, max_series, heave_std_multiple, 
+    #                grouped_df)
     avg_series = grouped_df[series_name].mean()
     avg_series.name = 'h_avg'
     h_1_3_mean_series = grouped_df.wave_height_cm.apply(lambda x : x.order()[-(len(x)/3):].mean())    
     h_1_3_mean_series.name = 'h_1_3_mean'
     h_rms_series = grouped_df.wave_height_cm.apply(lambda x: np.sqrt((x**2).sum()/len(x)))
     h_rms_series.name = 'h_rms'
-    heave_file_std_series = grouped_df['heave_file_std'].first()
-    heave_file_std_series.name = 'heave_file_std'
-    h_std_file_std = ( 1.33 *  heave_file_std_series) / std_series
+    max_std_factor_series = grouped_df['max_std_factor'].max()
+    max_std_factor_series.name = 'max_std_factor'
+    h_std_file_std = ( np.sqrt(8- 2 * np.pi) *  heave_file_std_series) / std_series
     h_std_file_std.name = 'heave_file_std_over_h_std'
-    h_avg_file_std = ( 2.51 *  heave_file_std_series) / avg_series
+    h_avg_file_std = ( 2.5 *  heave_file_std_series) / avg_series
     h_avg_file_std.name = 'heave_file_std_over_h_avg'
-    h_rms_file_std = ( 2.83 *  heave_file_std_series) / h_rms_series
+    h_rms_file_std = ( np.sqrt(8) *  heave_file_std_series) / h_rms_series
     h_rms_file_std.name = 'heave_file_std_over_h_rms'
     end_timestamps_series = grouped_df[new_cols[0]].last()
     end_timestamps_series.name = 'end_times'
@@ -86,7 +96,7 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
                                     end_timestamps_series, h_1_3_mean_series, 
                                     h_rms_series, heave_file_std_series, 
                                     h_std_file_std, h_avg_file_std, 
-                                    h_rms_file_std], 
+                                    h_rms_file_std, max_std_factor_series], 
                                    axis=1)
     avg_max_std_end_df.index = start_timestamps
     file_names_df = pd.DataFrame(grouped_df.file_name.size().index, 
@@ -97,6 +107,9 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
     all_stats_df.save(path + 'stats_groupby_df_' + str(sigma))
     print "sigma ", str(sigma)
     print all_stats_df.describe()
+    print np.mean([all_stats_df.heave_file_std_over_h_avg.mean(),
+                   all_stats_df.heave_file_std_over_h_std.mean(),
+                   all_stats_df.heave_file_std_over_h_rms.mean()])
 
 def get_stats_from_df(large_dataframe, series_name, half_hourly = True):
     '''Old implementation still used with AWAC wad dataframe, AWAC process 

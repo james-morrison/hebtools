@@ -30,7 +30,8 @@ class Error_Check():
         """
         print "detect_4_by_std"
         four_times_std_heave_30_mins = []
-        filtered_displacements = self.displacements[self.displacements['signal_error']==0]
+        #filtered_displacements = self.displacements[self.displacements['signal_error']==0]
+        filtered_displacements = self.displacements
         grouped_displacements = filtered_displacements.groupby('file_name')
         standard_deviations = grouped_displacements['heave','north','west'].std()
         self.raw_plus_std = self.displacements.join(standard_deviations, 
