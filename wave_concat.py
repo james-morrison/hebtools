@@ -53,7 +53,9 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
     '''
     new_cols = ['date_time_index']
     large_dataframe = large_dataframe.sort()
-    large_dataframe = large_dataframe[large_dataframe.bad_wave==False]
+    sigma = 3
+    #large_dataframe = large_dataframe[large_dataframe.bad_wave==False]
+    large_dataframe = large_dataframe[large_dataframe.max_std_factor < sigma]
     reset_index_df = large_dataframe.reset_index()
     cols = reset_index_df.columns.values
     [new_cols.append(x) for x in cols[1:]]
@@ -69,19 +71,32 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
     h_1_3_mean_series.name = 'h_1_3_mean'
     h_rms_series = grouped_df.wave_height_cm.apply(lambda x: np.sqrt((x**2).sum()/len(x)))
     h_rms_series.name = 'h_rms'
+    heave_file_std_series = grouped_df['heave_file_std'].first()
+    heave_file_std_series.name = 'heave_file_std'
+    h_std_file_std = ( 1.33 *  heave_file_std_series) / std_series
+    h_std_file_std.name = 'heave_file_std_over_h_std'
+    h_avg_file_std = ( 2.51 *  heave_file_std_series) / avg_series
+    h_avg_file_std.name = 'heave_file_std_over_h_avg'
+    h_rms_file_std = ( 2.83 *  heave_file_std_series) / h_rms_series
+    h_rms_file_std.name = 'heave_file_std_over_h_rms'
     end_timestamps_series = grouped_df[new_cols[0]].last()
     end_timestamps_series.name = 'end_times'
     start_timestamps = grouped_df[new_cols[0]].first().values
     avg_max_std_end_df = pd.concat([std_series, max_series, avg_series, 
                                     end_timestamps_series, h_1_3_mean_series, 
-                                    h_rms_series], axis=1)
+                                    h_rms_series, heave_file_std_series, 
+                                    h_std_file_std, h_avg_file_std, 
+                                    h_rms_file_std], 
+                                   axis=1)
     avg_max_std_end_df.index = start_timestamps
     file_names_df = pd.DataFrame(grouped_df.file_name.size().index, 
                                  columns = ['file_names'], 
                                  index=start_timestamps)
     all_stats_df = avg_max_std_end_df.join(file_names_df)
-    all_stats_df.to_excel(path + 'wave_h_groupby.xlsx')
-    all_stats_df.save(path + 'stats_groupby_df')
+    all_stats_df.to_excel(path + 'wave_h_groupby_' + str(sigma) + '.xlsx')
+    all_stats_df.save(path + 'stats_groupby_df_' + str(sigma))
+    print "sigma ", str(sigma)
+    print all_stats_df.describe()
 
 def get_stats_from_df(large_dataframe, series_name, half_hourly = True):
     '''Old implementation still used with AWAC wad dataframe, AWAC process 
