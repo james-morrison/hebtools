@@ -2,9 +2,9 @@ The project processes raw **[Datawell Waverider](http://www.datawell.nl)**
 files into a flexible time series. The code allows easier calculation of 
 statistics from the displacment data, more sophisticated masking of improbable
 data and the ability to deal with larger timeseries than is available from 
-existing software. The same code is also used to process pressure data from 
+existing software. Similar code is also used to process pressure data from 
 **[Nortek AWAC](http://www.nortek-as.com/en/products/wave-systems/awac)** 
-sensors detailed below.
+sensors details are described below.
 
 In the case of a Datawell Waverider buoy the data directory containing year 
 subfolders must be supplied to the main **raw_combined.py** module. The class 
@@ -40,9 +40,11 @@ module requires a directory path that contains buoy directories and their
 names, the set size used for statistic calculation can be by number of waves or
 time interval.
 
-**wad\_to\_dataframe.py** is a module than can process a Nortek AWAC wad file. 
-The pressure column can be then be processed in the same way as the Waverider 
-heave displacement without the error correction.
+In the **awac** folder there is a **wad\_to\_dataframe.py** module than can 
+process a Nortek AWAC wad file. The pressure column can be then be processed in
+the same way as the Waverider heave displacement without the error correction. 
+There is an **awac\_stats.py** module which uses an approach similar to 
+wave_concat.py for calculating time interval based statistics.
 
 **test\_raw\_combined.py** is a module for testing the Load\_Raw\_Files and 
 Wave_Stats classes, example buoy data is required to test, 1 month of 
