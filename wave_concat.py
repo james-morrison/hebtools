@@ -5,45 +5,16 @@ buoys producing statistics for the concatenated wave_height_dataframes
 including h_max, h_1_3_mean and the time period these statistics cover. The 
 statistics are then saved as a Pandas DataFrame and exported to Excel xlsx 
 format. 
-
-This process can also be carried out for the pressure data from a 
-Nortek AWAC in process_awac_wave_height given a wad file from 
-wad_to_dataframe.py 
-
-@author: James Morrison
-@license: MIT
 """
+
 
 import os
 import pandas as pd
 import numpy as np
-import time
-from datetime import datetime
 
 #buoys = ['Roag_Wavegen','Bragar_HebMarine2','Siadar_HebMarine1']
 buoys = ['buoy_data']
 buoys_root_path = ''
-awac_root_path = 'D:\\awac_time_series\\'
-time_based_stats = True
-
-def timestamp_to_nearest_half_hour(timestamp, set_length_seconds):
-    unix_timestamp = time.mktime(timestamp.timetuple())
-    return round(unix_timestamp/set_length_seconds)*set_length_seconds
-
-def arrays_to_df_excel(stats_dict, buoy_name, path):
-    index_df = pd.DatetimeIndex(stats_dict['start_times'])
-    end_df = pd.DataFrame(stats_dict['end_times'], index=index_df, columns=['end_times'])
-    h_1_3_mean_df = pd.DataFrame(stats_dict['h_1_3_mean'], index=index_df, 
-                                 columns=['h_1_3_mean'])
-    h_max_df = pd.DataFrame(stats_dict['h_max'], index=index_df, columns=['h_max'])
-    h_avg_df = pd.DataFrame(stats_dict['h_avg'], index=index_df, columns=['h_avg'])
-    h_std_df = pd.DataFrame(stats_dict['h_std'], index=index_df, columns=['h_std'])
-    set_df = h_max_df.join([h_1_3_mean_df, h_avg_df, h_std_df, end_df])
-    set_df.save(path + 'wave_h_' + str(stats_dict['set_size']) + 
-                'set_' + buoy_name)
-    set_df.to_excel(path + 'wave_h_' + str(stats_dict['set_size']) + 'set_' + 
-                    buoy_name + '.xlsx')
-
 
 def filter_maximums(heave_std_series, max_series, multiple, grouped_df):
     max_series[max_series>(heave_std_series*multiple)]
@@ -59,7 +30,6 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
     new_cols = ['date_time_index']
     large_dataframe = large_dataframe.sort()
     sigma = 4
-    #large_dataframe = large_dataframe[large_dataframe.bad_wave==False]
     large_dataframe = large_dataframe[large_dataframe.max_std_factor < sigma]
     heave_std_multiple = np.sqrt(8*np.log10(len(large_dataframe)))
     reset_index_df = large_dataframe.reset_index()
@@ -83,7 +53,8 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
     h_rms_series.name = 'h_rms'
     max_std_factor_series = grouped_df['max_std_factor'].max()
     max_std_factor_series.name = 'max_std_factor'
-    h_std_file_std = ( np.sqrt(8- 2 * np.pi) *  heave_file_std_series) / std_series
+    h_std_file_std = ( np.sqrt( 8- 2 * np.pi ) *  \
+                       heave_file_std_series) / std_series
     h_std_file_std.name = 'heave_file_std_over_h_std'
     h_avg_file_std = ( 2.5 *  heave_file_std_series) / avg_series
     h_avg_file_std.name = 'heave_file_std_over_h_avg'
@@ -110,48 +81,6 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
     print np.mean([all_stats_df.heave_file_std_over_h_avg.mean(),
                    all_stats_df.heave_file_std_over_h_std.mean(),
                    all_stats_df.heave_file_std_over_h_rms.mean()])
-
-def get_stats_from_df(large_dataframe, series_name, half_hourly = True):
-    '''Old implementation still used with AWAC wad dataframe, AWAC process 
-    needs updating to take advantage of groupby as in get_stats_from_df_groupby
-    '''
-    large_dataframe = large_dataframe.sort()
-    
-    stats_dict = {'start_times':[], 'end_times':[], 'h_max':[], 
-                  'h_1_3_mean':[], 'h_avg':[], 'h_std':[]}
-    if time_based_stats:                        
-        
-        timestamp = large_dataframe.ix[0].name
-        last_timestamp = large_dataframe.ix[-1].name
-        if half_hourly:
-            time_set = 1800 
-            first_nearest_halfhour = timestamp_to_nearest_half_hour(timestamp, time_set)
-            last_nearest_halfhour = timestamp_to_nearest_half_hour(last_timestamp, time_set)
-            index = np.arange(first_nearest_halfhour, last_nearest_halfhour, time_set)
-            set_size = 'half_hour'
-        else: 
-            time_set = 3600
-            index = np.arange(time.mktime(timestamp.timetuple()), time.mktime(last_timestamp.timetuple()), time_set)
-            set_size = 'hour'
-        stats_dict['set_size'] = set_size
-    else:
-        set_size = 100
-        stats_dict['set_size'] = set_size
-        index = np.arange(set_size,len(large_dataframe),set_size)
-    for x in index:
-        if time_based_stats:                   
-            subset = large_dataframe.ix[datetime.utcfromtimestamp(x-time_set):datetime.utcfromtimestamp(x)]
-        else:
-            subset = large_dataframe.ix[x-set_size:x]
-        if len(subset) != 0:
-            stats_dict['start_times'].append(subset.index[0])
-            stats_dict['end_times'].append(subset.index[-1])
-            stats_dict['h_1_3_mean'].append(subset[series_name].order()[-(len(subset)/3):].mean())
-            stats_dict['h_avg'].append(subset.mean()[0])
-            stats_dict['h_std'].append(subset.std()[0])
-            stats_dict['h_max'].append(subset.max()[0])
-    "finished stats"
-    return stats_dict 
     
 def iterate_over_buoys(buoys):
     for buoy_name in buoys:
@@ -172,14 +101,6 @@ def iterate_over_buoys(buoys):
                                                          wave_height_df])
         large_dataframe.save('large_wave_height_df')
         stats_dict = get_stats_from_df_groupby(large_dataframe, "wave_height_cm", buoys_root_path)
-        
-def process_awac_wave_height():
-    #concat all three datasets from the hebmarine awac together
-    os.chdir(awac_root_path)
-    wave_height_df = pd.load('hebmarine_awac_full_wave_height_dataframe')
-    stats_dict = get_stats_from_df(wave_height_df, "wave_height_decibar")
-    arrays_to_df_excel(stats_dict, 'hebmarine_awac', awac_root_path)
-        
-iterate_over_buoys(buoys)    
-#process_awac_wave_height()
+            
+iterate_over_buoys(buoys)
     
