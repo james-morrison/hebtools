@@ -59,10 +59,10 @@ project.
 Requires: 
 
 - [Python 2.7](http://python.org/download/) ( developed and tested with 2.7.3 )
-- [Numpy](http://numpy.scipy.org)
+- [Numpy](http://numpy.scipy.org) ( developed and tested with 1.6.2 )
 - [Pandas](http://pandas.pydata.org) ( minimum 0.10.1 )
-- [Matplotlib](http://matplotlib.org)
-- [openpyxl](http://bitbucket.org/ericgazoni/openpyxl/src)
+- [Matplotlib](http://matplotlib.org) ( developed and tested with 1.2.0 )
+- [openpyxl](http://bitbucket.org/ericgazoni/openpyxl/src) ( developed and tested with 1.6.1 )
 
 Almost all of the above requirements can be satisfied with a Python 
 distribution like [Anaconda CE](http://continuum.io/downloads.html).
