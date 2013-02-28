@@ -1,7 +1,7 @@
 import pandas as pd
 from datetime import datetime 
-import extrema
-import wave_stats
+from ... import extrema
+from ... import wave_stats
 import os
 
 #Read Nortek wad file with varying white space gaps ( fixed length record )
