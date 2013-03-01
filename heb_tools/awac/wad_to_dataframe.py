@@ -1,7 +1,7 @@
 import pandas as pd
 from datetime import datetime 
-from ... import extrema
-from ... import wave_stats
+from heb_tools import extrema
+from heb_tools import wave_stats
 import os
 
 #Read Nortek wad file with varying white space gaps ( fixed length record )
@@ -22,7 +22,8 @@ def wad_to_dataframe(wad_file_path):
     wad_df.index = pd.DatetimeIndex( date_times.values )
     wad_df = wad_df.drop(['minute', 'hour', 'seconds', 'year', 'month', 'day'], axis=1)
     wad_df.save(wad_file_path.replace('.','_') + '_df')
-
+    pressure_to_wave_height(wad_df)
+    
 def pressure_to_wave_height(wad_df):
     extrema_df = extrema.Get_Extrema(wad_df, 'pressure')
     os.chdir('D:\\awac_time_series\\')
@@ -44,4 +45,4 @@ def rename_and_resample(wave_stat_df, name):
 #wad_df = pd.load('D:\\AquaMarine_AWAC_Recovery_1\\aquamarine_awac_recovery_1\\shortened_wad_df')
 wad_file_path = 'D:\\AWAC_time_series\\MERGE - 601sec.wad'
 wad_to_dataframe(wad_file_path)
-pressure_to_wave_height(wad_df)
+

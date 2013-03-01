@@ -15,11 +15,12 @@ number_of_waves = 313053
 class Test_Load_Raw_Files(unittest.TestCase):
 
    def setUp(self):
-       try:        
-           folder_path = 'buoy_data'
-           raw_combined.Load_Raw_Files(folder_path)
-       except WindowsError:
-           print "Load Raw Files failed"
+       #try:        
+           folder_path = '../../buoy_data'
+           parse_raw = raw_combined.ParseRaw()
+           parse_raw.load(folder_path)
+       #except WindowsError:
+       #    print "Load Raw Files failed"
 
    def test_wave_height_dataframe(self):
        wave_height_dataframe = pd.load('wave_height_dataframe')

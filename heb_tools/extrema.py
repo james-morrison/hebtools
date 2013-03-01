@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+__package__='heb_tools'
+
 class Get_Extrema():
 
     def __init__(self, raw_displacements, column_name = 'heave'):    

@@ -33,9 +33,12 @@ import wave_stats
 import error_check
 import extrema
         
-class Load_Raw_Files:
+class ParseRaw:
     
-    def __init__(self, folder_path, year = None): 
+    def __init__(self):
+        print "init"
+        
+    def load(self, folder_path, year = None): 
         self.year = year
         self.iterate_over_years(folder_path)
   
@@ -137,3 +140,4 @@ class Load_Raw_Files:
                 extrema_df = extrema.Get_Extrema(month_raw_displacements)
                 error_df = error_check.Error_Check(extrema_df.raw_disp_with_extrema)
                 wave_stats.Wave_Stats(error_df.raw_plus_std)
+                
