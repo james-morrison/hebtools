@@ -14,9 +14,9 @@ those identified are then added as a column 'extrema' to the orginal DataFrame.
 
 Local extrema which have a non zero status signal and values which deviate more
 than four times from the standard deviation and their corresponding local 
-extrema are then masked from calculations. The module wave_stats uses the 
-masked displacement data is then used to calculate a time series of wave 
-heights and unmasked zero crossing periods.
+extrema can then be masked from calculations. The module wave_stats uses the 
+masked displacement data which is then used to calculate a time series of wave 
+heights and zero crossing periods.
 
 @author: James Morrison
 @license: MIT

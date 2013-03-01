@@ -29,7 +29,7 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
     '''
     new_cols = ['date_time_index']
     large_dataframe = large_dataframe.sort()
-    sigma = 4
+    sigma = 3.5
     large_dataframe = large_dataframe[large_dataframe.max_std_factor < sigma]
     heave_std_multiple = np.sqrt(8*np.log10(len(large_dataframe)))
     reset_index_df = large_dataframe.reset_index()

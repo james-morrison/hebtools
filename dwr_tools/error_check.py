@@ -24,14 +24,14 @@ class Error_Check():
         getting the standard deviation for each displacement (heave,north,west) 
         The displacements are then compared against 4 times 
         their standard deviation and any records exceeding this comparison for 
-        any displacement are give a True value for >4*std column, the standard
+        any displacement are given a True value for >4*std column, the standard
         deviations are also stored in the DataFrame so further comparison can
         be made
         """
         print "detect_4_by_std"
         four_times_std_heave_30_mins = []
-        #filtered_displacements = self.displacements[self.displacements['signal_error']==0]
-        filtered_displacements = self.displacements
+        filtered_displacements = self.displacements[self.displacements['signal_error']==0]
+        #filtered_displacements = self.displacements
         grouped_displacements = filtered_displacements.groupby('file_name')
         standard_deviations = grouped_displacements['heave','north','west'].std()
         self.raw_plus_std = self.displacements.join(standard_deviations, 
