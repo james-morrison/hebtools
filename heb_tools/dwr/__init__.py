@@ -1,1 +1,2 @@
-from raw_combined import ParseRaw
+from parse_raw import ParseRaw
+from error_check import ErrorCheck

@@ -29,9 +29,9 @@ import os
 import glob
 import sys
 import pandas as pd
-from heb_tools.common import wave_stats
-import error_check
-from heb_tools.common import extrema
+from heb_tools.dwr import ErrorCheck
+from heb_tools.common import WaveStats
+from heb_tools.common import GetExtrema
         
 class ParseRaw:
     
@@ -137,7 +137,7 @@ class ParseRaw:
             path = os.path.join(year_folder_path,month_dir)
             if os.path.isdir(path):
                 month_raw_displacements = self.iterate_over_file_names(path)
-                extrema_df = extrema.Get_Extrema(month_raw_displacements)
-                error_df = error_check.Error_Check(extrema_df.raw_disp_with_extrema)
-                wave_stats.Wave_Stats(error_df.raw_plus_std)
+                extrema_df = GetExtrema(month_raw_displacements)
+                error_df = ErrorCheck(extrema_df.raw_disp_with_extrema)
+                WaveStats(error_df.raw_plus_std)
                 

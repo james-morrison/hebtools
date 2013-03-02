@@ -7,7 +7,7 @@ import logging
 import sys
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
-class Wave_Stats:
+class WaveStats:
     
     def __init__(self, raw_disp, column_name = 'heave', error_check = True, 
                  series_name = 'wave_height_cm', 

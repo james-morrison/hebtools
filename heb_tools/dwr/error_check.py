@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-class Error_Check():
+class ErrorCheck():
 
     def __init__(self, extrema_df, sigma = 4 ):
         self.sigma = sigma

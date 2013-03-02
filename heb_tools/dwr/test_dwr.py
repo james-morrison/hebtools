@@ -4,20 +4,20 @@ author: James Morrison
 """
 import unittest
 import os
-import raw_combined
 import pandas as pd
-import wave_stats
+from heb_tools.dwr import ParseRaw
+from heb_tools.common import WaveStats
 
 print os.getcwd()
 
 number_of_waves = 313053
     
-class Test_Load_Raw_Files(unittest.TestCase):
+class TestParseRaw(unittest.TestCase):
 
    def setUp(self):
        #try:        
            folder_path = '../../buoy_data'
-           parse_raw = raw_combined.ParseRaw()
+           parse_raw = ParseRaw()
            parse_raw.load(folder_path)
        #except WindowsError:
        #    print "Load Raw Files failed"

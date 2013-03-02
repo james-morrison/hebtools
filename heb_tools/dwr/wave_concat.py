@@ -12,7 +12,6 @@ import os
 import pandas as pd
 import numpy as np
 
-#buoys = ['Roag_Wavegen','Bragar_HebMarine2','Siadar_HebMarine1']
 buoys = ['buoy_data']
 buoys_root_path = ''
 

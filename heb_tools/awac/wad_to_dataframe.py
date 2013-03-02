@@ -1,8 +1,8 @@
+import os
 import pandas as pd
 from datetime import datetime 
-from heb_tools.common import extrema
-from heb_tools.common import wave_stats
-import os
+from heb_tools.common import GetExtrema
+from heb_tools.common import WaveStats
 
 #Read Nortek wad file with varying white space gaps ( fixed length record )
 
@@ -25,9 +25,9 @@ def wad_to_dataframe(wad_file_path):
     pressure_to_wave_height(wad_df)
     
 def pressure_to_wave_height(wad_df):
-    extrema_df = extrema.Get_Extrema(wad_df, 'pressure')
+    extrema_df = GetExtrema(wad_df, 'pressure')
     os.chdir('D:\\awac_time_series\\')
-    wave_stats.Wave_Stats(extrema_df.raw_disp_with_extrema, 'pressure', error_check=False, series_name = 'wave_height_decibar', df_file_name = 'aquamarine_awac_wave_height')
+    WaveStats(extrema_df.raw_disp_with_extrema, 'pressure', error_check=False, series_name = 'wave_height_decibar', df_file_name = 'aquamarine_awac_wave_height')
 
 def join_df(wave_stat_df_1, name_1, wave_stat_df_2, name_2):
     wave_stat_df_1 = rename_and_resample(wave_stat_df_1)
