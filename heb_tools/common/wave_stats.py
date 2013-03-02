@@ -91,16 +91,16 @@ class WaveStats:
         differences = np.ediff1d(np.array(extrema[column_name]))
         np.save('differences',differences)
         wave_height_timestamps = extrema.index[differences<0]
-        file_names = extrema.file_name[differences<0]
         wave_heights = np.absolute(differences[differences<0])
         np.save('wave_heights',wave_heights)
         wave_height_df = pd.DataFrame(wave_heights, columns=[series_name],
                                       index = wave_height_timestamps)
         print wave_height_df
-        file_name_df = pd.DataFrame(file_names, columns=['file_name'], 
+        if error_check:
+            file_names = extrema.file_name[differences<0]
+            file_name_df = pd.DataFrame(file_names, columns=['file_name'], 
                                     index = wave_height_timestamps)
-        wave_height_df = wave_height_df.join(file_name_df)
-        if error_check:        
+            wave_height_df = wave_height_df.join(file_name_df)    
             wave_height_df = self.check_wave_height_dataframe(wave_height_df)
         wave_height_df.save(df_file_name)
         print wave_height_df.describe()

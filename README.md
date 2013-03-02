@@ -31,31 +31,32 @@ file is treated as the very start of that half hour period, e.g. for the file
 18:30:00 ( Hours:Minutes:Seconds ). 
 
 Masking and calculation of the standard deviation of displacement values 
-occurrs in the **error_check** module
+takes place in the **ErrorCheck** class
 
 **common**
 
-Peak and troughs are detected for the heave/pressure values in the **extrema**
-module. In the **wave\_stats** module wave heights and zero crossing periods 
-are calculated, wave heights are calculated from peak to trough.
+Peak and troughs are detected for the heave/pressure values in the 
+**GetExtrema** class. In the **WaveStats** class wave heights and zero 
+crossing periods are calculated, wave heights are calculated from peak to 
+trough.
 
 **awac**
 
-In the **awac** folder there is a **wad\_to\_dataframe.py** module than can 
-process a Nortek AWAC wad file. The pressure column can be then be processed in
-the same way as the Waverider heave displacement without the error correction. 
-There is an **awac\_stats.py** module which uses an approach similar to 
-wave_concat.py for calculating time interval based statistics.
+In the **awac** folder there is a **wad\_to\_dataframe.py** module that can 
+process a Nortek AWAC wad file. The pressure column can be then be processed 
+in the same way as the Waverider heave displacement without the error 
+correction. There is an **awac\_stats.py** module which uses an approach 
+similar to **wave_concat.py** for calculating time interval based statistics.
 
 *Testing*
 
-**test\_raw\_combined.py** is a module for testing the ParseRaw and 
-Wave_Stats classes, example buoy data is required to test, 1 month of 
+**test\_dwr.py** is a module for testing the **ParseRaw** and 
+**WaveStats** classes, example buoy data is required to test, 1 month of 
 anonymised data is provided in **buoy\_data.zip**
 
 *Statistic outputs*
 
-**wave\_concat** module can be run after **ParseRaw** or 
+**wave\_concat.py** module can be run after **ParseRaw** or 
 **wad\_to\_dataframe** to create a complete dataframe of all wave heights 
 timestamped and sorted temporally for each buoy. Statistics are then generated
 on wave sets derived from the complete dataframe which are then exported as an

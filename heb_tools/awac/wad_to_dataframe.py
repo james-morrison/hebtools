@@ -42,7 +42,6 @@ def rename_and_resample(wave_stat_df, name):
     wave_stat_df.columns = new_cols
     return wave_stat_df    
     
-#wad_df = pd.load('D:\\AquaMarine_AWAC_Recovery_1\\aquamarine_awac_recovery_1\\shortened_wad_df')
 wad_file_path = 'D:\\AWAC_time_series\\MERGE - 601sec.wad'
 wad_to_dataframe(wad_file_path)
 
