@@ -42,7 +42,7 @@ trough.
 
 **awac**
 
-In the **awac** folder there is a **wad\_to\_dataframe.py** module that can 
+In the **awac** folder there is a **ParseWad** class that can 
 process a Nortek AWAC wad file. The pressure column can be then be processed 
 in the same way as the Waverider heave displacement without the error 
 correction. There is an **awac\_stats.py** module which uses an approach 
@@ -50,14 +50,14 @@ similar to **wave_concat.py** for calculating time interval based statistics.
 
 *Testing*
 
-**test\_dwr.py** is a module for testing the **ParseRaw** and 
+**test_dwr.py** is a module for testing the **ParseRaw** and 
 **WaveStats** classes, example buoy data is required to test, 1 month of 
 anonymised data is provided in **buoy\_data.zip**
 
 *Statistic outputs*
 
 **wave\_concat.py** module can be run after **ParseRaw** or 
-**wad\_to\_dataframe** to create a complete dataframe of all wave heights 
+**ParseWad** to create a complete dataframe of all wave heights 
 timestamped and sorted temporally for each buoy. Statistics are then generated
 on wave sets derived from the complete dataframe which are then exported as an
 Excel workbook ( .xlsx file ). This module requires a directory path that 
@@ -67,7 +67,7 @@ statistics sets for the the buoy data is done by raw file name.
 
 **problem\_file\_concat.py** module produces a csv file with the filenames of 
 all raw files that could not be processed, this module can be run after 
-**raw_combined.py**.
+**ParseRaw**.
 
 The project was developed with data received from Waverider MKII and MKIII 
 buoys with RFBuoy v2.1.27 producing the raw files. The AWAC was a 1MHz device
