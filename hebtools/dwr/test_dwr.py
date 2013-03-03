@@ -5,8 +5,8 @@ author: James Morrison
 import unittest
 import os
 import pandas as pd
-from hebtools.dwr import ParseRaw
-from hebtools.common import WaveStats
+from hebtools.dwr import parse_raw
+from hebtools.common.wave_stats import WaveStats
 
 print os.getcwd()
 
@@ -17,7 +17,7 @@ class TestParseRaw(unittest.TestCase):
    def setUp(self):
        try:        
            folder_path = '../../buoy_data'
-           parse_raw = ParseRaw(folder_path)
+           parse_raw.load(folder_path)
        except WindowsError:
            print "Load Raw Files failed"
 
