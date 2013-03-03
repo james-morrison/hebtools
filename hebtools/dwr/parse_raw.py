@@ -29,16 +29,13 @@ import os
 import glob
 import sys
 import pandas as pd
-from hebtools.dwr import ErrorCheck
-from hebtools.common import WaveStats
-from hebtools.common import GetExtrema
+from .error_check import ErrorCheck
+from hebtools.common.wave_stats import WaveStats
+from hebtools.common.extrema import GetExtrema
         
 class ParseRaw:
     
-    def __init__(self):
-        print "init"
-        
-    def load(self, folder_path, year = None): 
+    def __init__(self, folder_path, year = None):
         self.year = year
         self.iterate_over_years(folder_path)
   

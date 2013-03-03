@@ -1,9 +1,6 @@
 import numpy as np
 import os
 
-buoys = ['Roag_Wavegen','Bragar_HebMarine2','Siadar_HebMarine1']
-buoys_root_path = 'D:\\Datawell\\'
-
 def iterate_over_buoys(buoys):
     for buoy_name in buoys:
         buoy_path = buoys_root_path + buoy_name
@@ -20,5 +17,8 @@ def iterate_over_buoys(buoys):
                 large_np_array = np.concatenate([large_np_array, prob_files_np])
         np.save(buoys_root_path + '\\' + buoy_name + '_prob_files', large_np_array)
         np.savetxt(buoys_root_path + '\\' + buoy_name + "_problem_files.csv", large_np_array, fmt='%s')
-        
-iterate_over_buoys(buoys)    
+
+if __name__ == "__main__":
+    buoys = ['Roag_Wavegen','Bragar_HebMarine2','Siadar_HebMarine1']
+    buoys_root_path = 'D:\\Datawell\\'     
+    iterate_over_buoys(buoys)    
