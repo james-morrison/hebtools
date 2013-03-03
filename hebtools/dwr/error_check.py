@@ -1,15 +1,13 @@
 import numpy as np
 import pandas as pd
 
-class ErrorCheck():
-
-    def __init__(self, extrema_df, sigma = 4 ):
-        self.sigma = sigma
-        self.detect_error_waves(extrema_df)
-        self.detect_4_by_std()
-        self.calc_std_factor()
-        
-    def detect_error_waves(self, extrema_df):
+def check(extrema_df, sigma = 4):
+     
+    directions = ['heave','north','west']
+    std_factor = {}
+    suf = '_file_std'
+    
+    def detect_error_waves(extrema_df):
         """Find values with status signal problem and is a peak or trough,
         then adds a 'signal_error' boolean column to the DataFrame
         """
@@ -17,9 +15,13 @@ class ErrorCheck():
         error_wave_mask = extrema_df['sig_qual']>0
         extrema_df['signal_error'] = error_wave_mask
         extrems_plus_errors = extrema_df.sort()
-        self.displacements = extrems_plus_errors
+        return extrems_plus_errors
     
-    def detect_4_by_std(self):
+    def compare_std(raw_plus_std, direction):
+        return raw_plus_std[direction].abs() > \
+               (raw_plus_std[direction + suf] * sigma)
+    
+    def detect_4_by_std(sigma, displacements):
         """This function groups the displacements in the DataFrame by filename
         getting the standard deviation for each displacement (heave,north,west) 
         The displacements are then compared against 4 times 
@@ -30,35 +32,44 @@ class ErrorCheck():
         """
         print "detect_4_by_std"
         four_times_std_heave_30_mins = []
-        filtered_displacements = self.displacements[self.displacements['signal_error']==0]
-        #filtered_displacements = self.displacements
+        filtered_displacements = displacements[displacements['signal_error']==0]
+        #filtered_displacements = displacements
         grouped_displacements = filtered_displacements.groupby('file_name')
         standard_deviations = grouped_displacements['heave','north','west'].std()
-        self.raw_plus_std = self.displacements.join(standard_deviations, 
+        raw_plus_std = displacements.join(standard_deviations, 
                                                           on='file_name', 
-                                                          rsuffix='_file_std')                                  
-        heave_4_std = self.raw_plus_std.heave.abs() > ( self.raw_plus_std.heave_file_std * self.sigma )
-        north_4_std = self.raw_plus_std.north.abs() > ( self.raw_plus_std.north_file_std * self.sigma )
-        west_4_std = self.raw_plus_std.west.abs() > ( self.raw_plus_std.west_file_std * self.sigma )
-        disp_more_than_4_std = heave_4_std + north_4_std + west_4_std
-        self.raw_plus_std['>4*std'] = disp_more_than_4_std
-        self.raw_plus_std.save('raw_plus_std')
-        print self.raw_plus_std
+                                                          rsuffix='_file_std')                                
+        std_list = {}
+        for direction in directions:
+           std_list = compare_std(raw_plus_std, direction)
+        disp_more_than_4_std = std_list[0] + std_list[1] + std_list[2]
+        raw_plus_std['>4*std'] = disp_more_than_4_std
+        raw_plus_std.save('raw_plus_std')
+        return raw_plus_std
         
-    def calc_std_factor(self):
-        heave_std_factor = (self.raw_plus_std.heave / self.raw_plus_std.heave_file_std).abs()
-        north_std_factor = (self.raw_plus_std.north / self.raw_plus_std.north_file_std).abs()
-        west_std_factor = (self.raw_plus_std.west / self.raw_plus_std.west_file_std).abs()
-        west_more_than_mask = (west_std_factor > heave_std_factor) & \
-                              (west_std_factor > north_std_factor)
-        north_more_than_mask = (north_std_factor > heave_std_factor) & \
-                               (north_std_factor > west_std_factor)
-        heave_more_than_mask = (heave_std_factor > west_std_factor) & \
-                               (heave_std_factor > north_std_factor)
-        heave_factors = heave_std_factor[heave_more_than_mask]
-        north_factors = north_std_factor[north_more_than_mask]
-        west_factors = west_std_factor[west_more_than_mask]
-        combined_factors = pd.concat([heave_factors,north_factors,west_factors])
+    def compare_factors(main_factor, second_factor, third_factor):
+        """ return mask of one displacement where its displacements are the 
+        largest """
+        return main_factor[(main_factor > second_factor) & \
+                           (main_factor > third_factor)]
+    
+    def calc_std_factor(raw_plus_std):
+        for direction in directions:
+            std_factor[direction] = (raw_plus_std[direction] /
+                                     raw_plus_std[direction + suf]).abs()
+        factors = []
+        dirs = directions[:]
+        for direction in directions:
+            factors.append(compare_factors(std_factor[dirs[0]], 
+                                           std_factor[dirs[1]],
+                                           std_factor[dirs[2]]))
+            dirs.append(dirs.pop(0))
+        combined_factors = pd.concat(factors)
         combined_factors.name = 'max_std_factor'
-        self.raw_plus_std = self.raw_plus_std.join(combined_factors)
-        self.raw_plus_std.save('raw_plus_std')
+        raw_plus_std = raw_plus_std.join(combined_factors)
+        raw_plus_std.save('raw_plus_std')
+        return raw_plus_std
+        
+    displacements = detect_error_waves(extrema_df)
+    raw_plus_std = detect_4_by_std(sigma, displacements)
+    return calc_std_factor(raw_plus_std)

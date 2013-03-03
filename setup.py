@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 setup(name='hebtools',
       version='0.1',
       author='James Morrison',

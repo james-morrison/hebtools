@@ -29,7 +29,7 @@ import os
 import glob
 import sys
 import pandas as pd
-from .error_check import ErrorCheck
+import error_check
 from hebtools.common.wave_stats import WaveStats
 from hebtools.common.extrema import GetExtrema
         
@@ -131,7 +131,7 @@ def load(folder_path, year = None):
             if os.path.isdir(path):
                 month_raw_displacements = iterate_over_file_names(path)
                 extrema_df = GetExtrema(month_raw_displacements)
-                error_df = ErrorCheck(extrema_df.raw_disp_with_extrema)
-                WaveStats(error_df.raw_plus_std)
+                raw_plus_std = error_check.check(extrema_df.raw_disp_with_extrema)
+                WaveStats(raw_plus_std)
                
     iterate_over_years(year, folder_path)

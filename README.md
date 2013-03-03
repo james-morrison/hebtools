@@ -15,10 +15,14 @@ the other subpackages.
 
 **dwr**
 
-In the case of a Datawell Waverider buoy the data directory containing year 
-subfolders must be supplied to the load method of the **ParseRaw** class which
-then iterates through the years. Processing the records from the raw files 
-into a pandas DataFrame for each month with columns 'sig\_qual', 'heave', 
+In the case of a Datawell Waverider buoy the buoy data directory containing year 
+subfolders must be passed to the load method of the **parse_raw** module which
+then iterates through the years. 
+
+from hebtools.dwr import parse_raw
+
+Processing the records from the raw files 
+into a pandas DataFrame for each month with columns 'sig_qual', 'heave', 
 'north' and 'west' the index being a pandas DateTimeIndex. An optional year 
 parameter can be supplied to process a specifc year folder.
 
@@ -31,7 +35,7 @@ file is treated as the very start of that half hour period, e.g. for the file
 18:30:00 ( Hours:Minutes:Seconds ). 
 
 Masking and calculation of the standard deviation of displacement values 
-takes place in the **ErrorCheck** class
+takes place in the **error_check** module
 
 **common**
 
