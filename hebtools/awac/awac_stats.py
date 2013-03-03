@@ -1,6 +1,6 @@
 """
 Module for generating statistics dataframe for the pressure data from a 
-Nortek AWAC given a wad file from wad_to_dataframe.py 
+Nortek AWAC wad file using the outputs of parse_wad.py 
 
 @author: James Morrison
 @license: MIT
@@ -12,7 +12,6 @@ import numpy as np
 import time
 from datetime import datetime
 
-awac_root_path = 'D:\\awac_time_series\\'
 time_based_stats = True
 
 def timestamp_to_nearest_half_hour(timestamp, set_length_seconds):
@@ -76,11 +75,13 @@ def get_stats_from_df(large_dataframe, series_name, half_hourly = True):
     "finished stats"
     return stats_dict 
 
-def process_awac_wave_height():
+def process_awac_wave_height(awac_root_path):
     #concat all three datasets from the hebmarine awac together
     os.chdir(awac_root_path)
     wave_height_df = pd.load('hebmarine_awac_full_wave_height_dataframe')
     stats_dict = get_stats_from_df(wave_height_df, "wave_height_decibar")
     arrays_to_df_excel(stats_dict, 'hebmarine_awac', awac_root_path)
-    
-process_awac_wave_height()    
+
+if __name__ == "__main__": 
+    awac_root_path = 'D:\\awac_time_series\\'     
+    process_awac_wave_height(awac_root_path)    

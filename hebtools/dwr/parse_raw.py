@@ -29,9 +29,9 @@ import os
 import glob
 import sys
 import pandas as pd
-from heb_tools.dwr import ErrorCheck
-from heb_tools.common import WaveStats
-from heb_tools.common import GetExtrema
+from hebtools.dwr import ErrorCheck
+from hebtools.common import WaveStats
+from hebtools.common import GetExtrema
         
 class ParseRaw:
     

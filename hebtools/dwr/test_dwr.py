@@ -5,8 +5,8 @@ author: James Morrison
 import unittest
 import os
 import pandas as pd
-from heb_tools.dwr import ParseRaw
-from heb_tools.common import WaveStats
+from hebtools.dwr import ParseRaw
+from hebtools.common import WaveStats
 
 print os.getcwd()
 
