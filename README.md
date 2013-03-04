@@ -91,4 +91,4 @@ Almost all of the above requirements can be satisfied with a Python
 distribution like [Anaconda CE](http://continuum.io/downloads.html).
 
 openpyxl can be installed afterwards by running 'easy_install openpyxl' from 
-the Anaconda scripts directory. Test.
+the Anaconda scripts directory.
