@@ -1,19 +1,16 @@
 """
-Module for concatenating wave_height_dataframes produced by raw_combined.py
-Given a buoy root directory and buoy name the code will iterate over a list of 
-buoys producing statistics for the concatenated wave_height_dataframes 
-including h_max, h_1_3_mean and the time period these statistics cover. The 
-statistics are then saved as a Pandas DataFrame and exported to Excel xlsx 
+Module for concatenating wave_height_dataframes produced by parse_raw module.
+Passed a buoy directory the module will iterate over the years and months of 
+data producing statistics from the concatenated wave_height_dataframes 
+including h_max, h_1_3_mean, h_rms and the time period these statistics cover.
+The statistics are then saved as a Pandas DataFrame and exported to Excel xlsx 
 format. 
 """
 
-
 import os
+import sys
 import pandas as pd
 import numpy as np
-
-buoys = ['buoy_data']
-buoys_root_path = ''
 
 def filter_maximums(heave_std_series, max_series, multiple, grouped_df):
     max_series[max_series>(heave_std_series*multiple)]
@@ -81,25 +78,29 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
                    all_stats_df.heave_file_std_over_h_std.mean(),
                    all_stats_df.heave_file_std_over_h_rms.mean()])
     
-def iterate_over_buoys(buoys):
-    for buoy_name in buoys:
-        buoy_path = buoys_root_path + buoy_name
-        years = os.listdir(buoy_path)
-        large_dataframe = pd.DataFrame()
-        for year in years:
-            year_path = os.path.join(buoy_path, year)
-            if os.path.isdir(year_path):
-                    months = os.listdir(year_path)
-                    for month in months:
-                        month_path = os.path.join(year_path,month)
-                        if os.path.isdir(month_path):
-                            print month_path
-                            os.chdir(month_path)
-                            wave_height_df = pd.load('wave_height_dataframe')
-                            large_dataframe = pd.concat([large_dataframe, 
-                                                         wave_height_df])
-        large_dataframe.save('large_wave_height_df')
-        stats_dict = get_stats_from_df_groupby(large_dataframe, "wave_height_cm", buoys_root_path)
+def iterate_over_buoy_years(buoy_path):
+    years = os.listdir(buoy_path)
+    large_dataframe = pd.DataFrame()
+    for year in years:
+        year_path = os.path.join(buoy_path, year)
+        if os.path.isdir(year_path):
+                months = os.listdir(year_path)
+                for month in months:
+                    month_path = os.path.join(year_path,month)
+                    if os.path.isdir(month_path):
+                        print month_path
+                        os.chdir(month_path)
+                        wave_height_df = pd.load('wave_height_dataframe')
+                        large_dataframe = pd.concat([large_dataframe, 
+                                                     wave_height_df])
+    large_dataframe.save('large_wave_height_df')
+    get_stats_from_df_groupby(large_dataframe, "wave_height_cm", buoy_path)
             
-iterate_over_buoys(buoys)
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        print "wave_concat module requires path to buoy directory. Using default test data"
+        buoy_path = '../../buoy_data'
+    else:
+        buoy_path = sys.argv[1]
+    iterate_over_buoy_years(buoy_path)
     

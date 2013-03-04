@@ -5,14 +5,18 @@ DataFrame using hebtools.common classes
 """
 
 import os
+import sys
 import pandas as pd
 from datetime import datetime 
-from hebtools.common import GetExtrema
-from hebtools.common import WaveStats
+from hebtools.common import extrema
+from hebtools.common import wave_stats
 
 class ParseWad:
     
     def __init__(self, wad_file_path):
+        path = '/'.join(wad_file_path.split('\\')[:-1])
+        print path
+        os.chdir(path)
         self.parse_wad(wad_file_path)
 
     def parse_wad(self, wad_file_path):
@@ -37,9 +41,8 @@ class ParseWad:
         self.pressure_to_wave_height(wad_df)
     
     def pressure_to_wave_height(self, wad_df):
-        extrema_df = GetExtrema(wad_df, 'pressure')
-        os.chdir('D:\\awac_time_series\\')
-        WaveStats(extrema_df.raw_disp_with_extrema, 'pressure', error_check=False, 
+        extrema_df = extrema.GetExtrema(wad_df, 'pressure')
+        wave_stats.WaveStats(extrema_df.raw_disp_with_extrema, 'pressure', error_check=False, 
                   series_name = 'wave_height_decibar', 
                   df_file_name = 'aquamarine_awac_wave_height')
 
@@ -56,7 +59,8 @@ class ParseWad:
         wave_stat_df.columns = new_cols
         return wave_stat_df    
 
-if __name__ == "__main__":        
+if __name__ == "__main__":
+    if sys        
     wad_file_path = 'D:\\AWAC_time_series\\MERGE - 601sec.wad'
     ParseWad(wad_file_path)
 

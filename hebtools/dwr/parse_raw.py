@@ -34,7 +34,7 @@ from hebtools.common.wave_stats import WaveStats
 from hebtools.common.extrema import GetExtrema
         
 def load(folder_path, year = None):
-  
+    
     def get_rounded_timestamps(file_name, raw_array_length):
         """ Takes the length of the raw file and based on the file name gives 
         the start timestamp and the raw records are assumed to be sent every 
