@@ -82,6 +82,9 @@ def process_awac_wave_height(awac_root_path):
     stats_dict = get_stats_from_df(wave_height_df, "wave_height_decibar")
     arrays_to_df_excel(stats_dict, 'hebmarine_awac', awac_root_path)
 
-if __name__ == "__main__": 
-    awac_root_path = 'D:\\awac_time_series\\'     
+if __name__ == "__main__":
+    if len(sys.argv) == 1: 
+        awac_root_path = 'D:\\awac_time_series\\'     
+    else:
+       awac_root_path = sys.argv[1] 
     process_awac_wave_height(awac_root_path)    

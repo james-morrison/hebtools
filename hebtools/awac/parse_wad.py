@@ -60,7 +60,9 @@ class ParseWad:
         return wave_stat_df    
 
 if __name__ == "__main__":
-    if sys        
-    wad_file_path = 'D:\\AWAC_time_series\\MERGE - 601sec.wad'
+    if len(sys.argv) == 1:        
+        wad_file_path = 'D:\\AWAC_time_series\\MERGE - 601sec.wad'
+    else:
+        wad_file_path = sys.argv[1] 
     ParseWad(wad_file_path)
 
