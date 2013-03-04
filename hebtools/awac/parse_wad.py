@@ -1,14 +1,14 @@
 """
 Class for reading Nortek wad file with varying white space gaps ( fixed length
 record ) converts the wad data into pandas DataFrame and creates wave heights
-DataFrame using heb_tools.common classes  
+DataFrame using hebtools.common classes  
 """
 
 import os
 import pandas as pd
 from datetime import datetime 
-from heb_tools.common import GetExtrema
-from heb_tools.common import WaveStats
+from hebtools.common import GetExtrema
+from hebtools.common import WaveStats
 
 class ParseWad:
     

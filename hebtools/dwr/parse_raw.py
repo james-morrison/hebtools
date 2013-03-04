@@ -29,20 +29,13 @@ import os
 import glob
 import sys
 import pandas as pd
-from heb_tools.dwr import ErrorCheck
-from heb_tools.common import WaveStats
-from heb_tools.common import GetExtrema
+import error_check
+from hebtools.common.wave_stats import WaveStats
+from hebtools.common.extrema import GetExtrema
         
-class ParseRaw:
-    
-    def __init__(self):
-        print "init"
-        
-    def load(self, folder_path, year = None): 
-        self.year = year
-        self.iterate_over_years(folder_path)
+def load(folder_path, year = None):
   
-    def get_rounded_timestamps(self, file_name, raw_array_length):
+    def get_rounded_timestamps(file_name, raw_array_length):
         """ Takes the length of the raw file and based on the file name gives 
         the start timestamp and the raw records are assumed to be sent every 
         0.78125 seconds or 1.28Hz, returns a list of UTC datetimes """
@@ -61,7 +54,7 @@ class ParseRaw:
         utc_timestamps = [datetime.utcfromtimestamp(x) for x in time_index]
         return utc_timestamps
 
-    def iterate_over_file_names(self, path):
+    def iterate_over_file_names(path):
         """ Iterates over one months worth of raw files, appending to a pandas
         DataFrame after each successfull return from iterate_over_file """
         raw_cols = ['sig_qual','heave','north','west']
@@ -72,7 +65,7 @@ class ParseRaw:
         big_raw_array = pd.DataFrame(columns = raw_cols)
         files = []
         for index, filepath in enumerate(file_names):
-            raw_array, prob_file = self.iterate_over_file(filepath, raw_cols)
+            raw_array, prob_file = iterate_over_file(filepath, raw_cols)
             if prob_file:
                 problem_files.append(filepath)
             else:
@@ -83,7 +76,7 @@ class ParseRaw:
         print("finish iterate_over_files")
         return big_raw_array
         
-    def iterate_over_file(self, filepath, raw_cols):
+    def iterate_over_file(filepath, raw_cols):
         try:
             raw_file = open(filepath)
             raw_records = raw_file.readlines()
@@ -91,7 +84,7 @@ class ParseRaw:
                 return None, True
             records = []
             for record in raw_records:
-                returned_record = self.parse_record(record)
+                returned_record = parse_record(record)
                 if returned_record:
                     records.append(returned_record)
             raw_array = pd.DataFrame(records,columns=raw_cols,dtype=np.int)
@@ -104,11 +97,11 @@ class ParseRaw:
         if raw_file_length > 2500 or raw_file_length == 0:
             print("Possibly serious errors in transmission")
             return None, True
-        raw_array.index = self.get_rounded_timestamps(filepath, len(raw_array))
+        raw_array.index = get_rounded_timestamps(filepath, len(raw_array))
         
         return raw_array, False
         
-    def parse_record(self, record):
+    def parse_record(record):
         record_list = record.split(',')
         # Checking that record is valid format
         if len(record_list) == 4:
@@ -122,22 +115,23 @@ class ParseRaw:
             return new_array
         return None
     
-    def iterate_over_years(self, folder_path):
-        if self.year != None:
-            self.iterate_over_months(os.path.join(folder_path,str(self.year)))
+    def iterate_over_years(year, folder_path):
+        if year != None:
+            iterate_over_months(os.path.join(folder_path,str(year)))
         else:
             year_dirs = os.listdir(folder_path)
             for year_dir in year_dirs:
-                self.iterate_over_months(os.path.join(folder_path,year_dir))
+                iterate_over_months(os.path.join(folder_path,year_dir))
         
-    def iterate_over_months(self, year_folder_path):
+    def iterate_over_months(year_folder_path):
         print year_folder_path
         month_dirs = os.listdir(year_folder_path)
         for month_dir in month_dirs:
             path = os.path.join(year_folder_path,month_dir)
             if os.path.isdir(path):
-                month_raw_displacements = self.iterate_over_file_names(path)
+                month_raw_displacements = iterate_over_file_names(path)
                 extrema_df = GetExtrema(month_raw_displacements)
-                error_df = ErrorCheck(extrema_df.raw_disp_with_extrema)
-                WaveStats(error_df.raw_plus_std)
-                
+                raw_plus_std = error_check.check(extrema_df.raw_disp_with_extrema)
+                WaveStats(raw_plus_std)
+               
+    iterate_over_years(year, folder_path)

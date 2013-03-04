@@ -5,8 +5,8 @@ author: James Morrison
 import unittest
 import os
 import pandas as pd
-from heb_tools.dwr import ParseRaw
-from heb_tools.common import WaveStats
+from hebtools.dwr import parse_raw
+from hebtools.common.wave_stats import WaveStats
 
 print os.getcwd()
 
@@ -15,12 +15,11 @@ number_of_waves = 313053
 class TestParseRaw(unittest.TestCase):
 
    def setUp(self):
-       #try:        
+       try:        
            folder_path = '../../buoy_data'
-           parse_raw = ParseRaw()
            parse_raw.load(folder_path)
-       #except WindowsError:
-       #    print "Load Raw Files failed"
+       except WindowsError:
+           print "Load Raw Files failed"
 
    def test_wave_height_dataframe(self):
        wave_height_dataframe = pd.load('wave_height_dataframe')
