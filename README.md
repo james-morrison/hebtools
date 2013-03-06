@@ -33,6 +33,10 @@ wiki](https://bitbucket.org/jamesmorrison/datawell-waverider-raw-files-to-pandas
 Masking and calculation of the standard deviation of displacement values takes 
 place in the **error_check** module 
 
+**problem\_file\_concat** module produces a csv file with the filenames of 
+all raw files that could not be processed, this module can be run after 
+**parse_raw**.
+
 **common** 
 
 Peak and troughs are detected for the heave/pressure values in the 
@@ -44,14 +48,17 @@ periods are calculated, wave heights are calculated from peak to trough.
 In the **awac** folder there is a **ParseWad** class that can process a Nortek 
 AWAC wad file. The pressure column can be then be processed in the same way as 
 the Waverider heave displacement without the error correction. There is an 
-**awac\_stats.py** module which uses an approach similar to **wave_concat.py** 
-for calculating time interval based statistics. 
+**awac\_stats.py** module which uses an approach similar to **wave\_concat** 
+for calculating time interval based statistics. **parse_wap** module takes a 
+Nortek wave parameter file and generates a time indexed pandas Dataframe.
 
 *Testing* 
 
-The **test_dwr** module for testing the **parse\_raw** module and **WaveStats** 
+The **test\_dwr** module for testing the **parse\_raw** module and **WaveStats** 
 class, example buoy data is required to test, 1 month of anonymised data is 
-provided in **buoy\_data.zip** 
+provided in **buoy\_data.zip**. **test\_awac** module tests the **parse\_wad** 
+and **parse\_wap** modules. Short anonymised test data sets for wap and wad 
+files are in the awac_data folder.
 
 *Statistic outputs* 
 
@@ -60,11 +67,7 @@ complete dataframe of all wave heights timestamped and sorted temporally for
 each buoy. This uses data from the monthly *wave_height_dataframe* files, 
 statistics are then calculated on the wave sets and then exported as an Excel 
 workbook ( .xlsx file ). This module needs to be passed a path to a buoy data 
-directory, the set size used for statistic calculation are the raw file names. 
-
-The **problem\_file\_concat** module produces a csv file with the filenames of 
-all raw files that could not be processed, this module can be run after 
-**parse_raw**. 
+directory, the set size used for statistic calculation are the raw file names.  
 
 The project was developed with data received from Waverider MKII and MKIII buoys 
 with RFBuoy v2.1.27 producing the raw files. The AWAC was a 1MHz device and 
