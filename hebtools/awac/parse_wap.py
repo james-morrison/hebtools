@@ -9,7 +9,7 @@ and applied as an index then DataFrame is save and an Excel xlsx version
 @author: James Morrison
 @license: MIT
 """
-
+import os 
 import pandas as pd
 from datetime import datetime
 
@@ -23,25 +23,26 @@ wap_columns = ['Month', 'Day', 'Year', 'Hour', 'Minute', 'Second', 'Spectrum typ
  'No Detects', 'Bad Detects', 'Number of Zero-Crossings', 
  'Current speed (wave cell)(m/s)','Current direction (wave cell)', 'Error Code']
 
-wap_file_path = 'D:\\your_path_here.wap'
+def load(path):
+    """ path to wap file as parameter, wap data is loaded into pandas DataFrame,
+    time and date columns processed into DatetimeIndex, resulting DataFrame
+    Excel exported version is saved to disk in directory of wap file.
+    """
+    os.chdir('/'.join(path.split('/')[:-1]))
+    file_name = path.split('/')[-1]
+    wap_file = pd.io.parsers.read_csv(file_name, 
+                                      delimiter=r'\s*', names=wap_columns)    
+    timestamps = wap_file.Day.map(str) + ',' + wap_file.Month.map(str) + ','\
+                 + wap_file.Year.map(str) + 'T' + wap_file.Hour.map(str) + ':'\
+                 + wap_file.Minute.map(str) + ':' + wap_file.Second.map(str)
+    date_times = []
 
-output_wap_filename = 'ouput_filename'
- 
-wap_file = pd.io.parsers.read_csv(wap_file_path, delimiter=r'\s*', names=wap_columns )
-
-timestamps = wap_file.Day.map(str) + ',' + wap_file.Month.map(str) + ','\
-            + wap_file.Year.map(str) + 'T' + wap_file.Hour.map(str) + ':'\ 
-                        + wap_file.Minute.map(str) + ':' + wap_file.Second.map(str)
-                        
-date_times = []
-
-for x in timestamps:
-    date_times.append(datetime.strptime(x,'%d,%m,%YT%H:%M:%S'))
+    for x in timestamps:
+        date_times.append(datetime.strptime(x,'%d,%m,%YT%H:%M:%S'))
         
-date_times_index = pd.DatetimeIndex(date_times)
-
-wap_file.index = date_times_index
-
-wap_file.save(output_wap_filename)
-
-wap_file.to_excel(output_wap_filename + '.xlsx')
+    date_times_index = pd.DatetimeIndex(date_times)
+    wap_file.index = date_times_index
+    file_name = file_name[:-4]
+    wap_file.save(file_name + '_wap_df')
+    wap_file.to_excel(file_name + '_wap' + '.xlsx')
+    
