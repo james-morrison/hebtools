@@ -14,10 +14,10 @@ from hebtools.common import wave_stats
 class ParseWad:
     
     def __init__(self, wad_file_path):
-        path = '/'.join(wad_file_path.split('\\')[:-1])
-        print path
+        print os.getcwd()
+        path = '/'.join(wad_file_path.split('/')[:-1])
         os.chdir(path)
-        self.parse_wad(wad_file_path)
+        self.parse_wad(wad_file_path.split('/')[-1:][0])
 
     def parse_wad(self, wad_file_path):
         wad_df = pd.read_csv(wad_file_path, delimiter = r'\s*')
@@ -61,7 +61,7 @@ class ParseWad:
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:        
-        wad_file_path = 'D:\\AWAC_time_series\\MERGE - 601sec.wad'
+        wad_file_path = 'D:/AWAC_time_series/MERGE - 601sec.wad'
     else:
         wad_file_path = sys.argv[1] 
     ParseWad(wad_file_path)
