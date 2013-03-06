@@ -19,7 +19,8 @@ In the case of a Datawell Waverider buoy the buoy data directory containing year
 subfolders must be passed to the load method of the **parse_raw** module which 
 then iterates through the years. To call the module you can use the code below: 
 
-from hebtools.dwr import parse_raw parse_raw('path_to_buoy_data') 
+    from hebtools.dwr import parse_raw
+    parse_raw('path_to_buoy_data') 
 
 The module then processes the records from the raw files into a pandas DataFrame 
 a good format for doing time series analysis. As well as the large DataFrame 
