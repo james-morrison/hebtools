@@ -44,7 +44,7 @@ class ParseWad:
         extrema_df = extrema.GetExtrema(wad_df, 'pressure')
         wave_stats.WaveStats(extrema_df.raw_disp_with_extrema, 'pressure', error_check=False, 
                   series_name = 'wave_height_decibar', 
-                  df_file_name = 'aquamarine_awac_wave_height')
+                  df_file_name = 'awac_wave_height_df')
 
     def join_df(self, wave_stat_df_1, name_1, wave_stat_df_2, name_2):
         wave_stat_df_1 = rename_and_resample(wave_stat_df_1)
@@ -61,8 +61,7 @@ class ParseWad:
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:        
-        wad_file_path = 'D:/AWAC_time_series/MERGE - 601sec.wad'
+        print "No path to wad file supplied"
     else:
-        wad_file_path = sys.argv[1] 
-    ParseWad(wad_file_path)
+        ParseWad(sys.argv[1])
 
