@@ -17,7 +17,7 @@ def filter_maximums(heave_std_series, max_series, multiple, grouped_df):
     #max_series
                         
                     
-def get_stats_from_df_groupby(large_dataframe, series_name, path):
+def get_stats_from_df_groupby(large_dataframe, series_name, path, sigma = 3.5):
     '''Groups DataFrame by file_name, which should be approximately half hours
     Standard deviation, Maximum and Mean are extracted as series and joined 
     into DataFrame along with end_timestamps and start_timestamps and 
@@ -25,7 +25,6 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
     '''
     new_cols = ['date_time_index']
     large_dataframe = large_dataframe.sort()
-    sigma = 3.5
     large_dataframe = large_dataframe[large_dataframe.max_std_factor < sigma]
     heave_std_multiple = np.sqrt(8*np.log10(len(large_dataframe)))
     reset_index_df = large_dataframe.reset_index()
@@ -72,35 +71,35 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path):
     all_stats_df = avg_max_std_end_df.join(file_names_df)
     all_stats_df.to_excel(path + 'wave_h_groupby_' + str(sigma) + '.xlsx')
     all_stats_df.save(path + 'stats_groupby_df_' + str(sigma))
-    print "sigma ", str(sigma)
-    print all_stats_df.describe()
-    print np.mean([all_stats_df.heave_file_std_over_h_avg.mean(),
-                   all_stats_df.heave_file_std_over_h_std.mean(),
-                   all_stats_df.heave_file_std_over_h_rms.mean()])
+    #print "sigma ", str(sigma)
+    #print all_stats_df.describe()
+    #print np.mean([all_stats_df.heave_file_std_over_h_avg.mean(),
+    #               all_stats_df.heave_file_std_over_h_std.mean(),
+    #               all_stats_df.heave_file_std_over_h_rms.mean()])
     
 def iterate_over_buoy_years(buoy_path):
-    years = os.listdir(buoy_path)
+    os.chdir(buoy_path)
+    years = os.listdir('.')
     large_dataframe = pd.DataFrame()
     for year in years:
-        year_path = os.path.join(buoy_path, year)
-        if os.path.isdir(year_path):
-                months = os.listdir(year_path)
-                for month in months:
-                    month_path = os.path.join(year_path,month)
-                    if os.path.isdir(month_path):
-                        print month_path
-                        os.chdir(month_path)
-                        wave_height_df = pd.load('wave_height_dataframe')
-                        large_dataframe = pd.concat([large_dataframe, 
-                                                     wave_height_df])
+        if os.path.isdir(year):
+            os.chdir(year)
+            months = os.listdir('.')
+            for month in months:
+                if os.path.isdir(month):
+                    os.chdir(month)
+                    wave_height_df = pd.load('wave_height_dataframe')
+                    large_dataframe = pd.concat([large_dataframe, 
+                                                 wave_height_df])
+                    os.chdir('..') 
+            os.chdir('..') 
+    print os.getcwd()    
     large_dataframe.save('large_wave_height_df')
     get_stats_from_df_groupby(large_dataframe, "wave_height_cm", buoy_path)
             
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        print "wave_concat module requires path to buoy directory. Using default test data"
-        buoy_path = '../../buoy_data'
+        print "wave_concat module requires path to buoy directory" 
     else:
-        buoy_path = sys.argv[1]
-    iterate_over_buoy_years(buoy_path)
+        iterate_over_buoy_years(sys.argv[1])
     
