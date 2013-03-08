@@ -28,8 +28,9 @@ def load(path):
     time and date columns processed into DatetimeIndex, resulting DataFrame
     Excel exported version is saved to disk in directory of wap file.
     """
-    os.chdir('/'.join(path.split('/')[:-1]))
-    file_name = path.split('/')[-1]
+    path = os.path.normpath(path)
+    os.chdir(os.path.sep.join(path.split(os.path.sep)[:-1]))
+    file_name = path.split(os.path.sep)[-1]
     wap_file = pd.io.parsers.read_csv(file_name, 
                                       delimiter=r'\s*', names=wap_columns)    
     timestamps = wap_file.Day.map(str) + ',' + wap_file.Month.map(str) + ','\

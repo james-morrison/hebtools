@@ -78,9 +78,10 @@ def get_stats_from_df(large_dataframe, series_name, half_hourly = True):
     return stats_dict 
 
 def process_wave_height(awac_path):
-    path = '/'.join(awac_path.split('/')[:-1])
+    awac_path = os.path.normpath(awac_path)
+    path = os.path.sep.join(awac_path.split(os.path.sep)[:-1])
     os.chdir(path)
-    awac_file_name = awac_path.split('/')[-1:][0]
+    awac_file_name = awac_path.split(os.path.sep)[-1:][0]
     wave_height_df = pd.load(awac_file_name)
     stats_dict = get_stats_from_df(wave_height_df, "wave_height_decibar")
     arrays_to_df_excel(stats_dict, 'test_awac', path)

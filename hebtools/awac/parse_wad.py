@@ -34,9 +34,10 @@ class ParseWad:
     
     def __init__(self, wad_file_path):
         print os.getcwd()
-        if '/' in wad_file_path:
-            path = '/'.join(wad_file_path.split('/')[:-1])
-            wad_file_path = wad_file_path.split('/')[-1:][0]
+        wad_file_path = os.path.normpath(wad_file_path)
+        if os.path.sep in wad_file_path:
+            path = os.path.sep.join(wad_file_path.split(os.path.sep)[:-1])
+            wad_file_path = wad_file_path.split(os.path.sep)[-1:][0]
         else:
             path = '.'    
         os.chdir(path)
