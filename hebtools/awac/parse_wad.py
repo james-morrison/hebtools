@@ -6,21 +6,46 @@ DataFrame using hebtools.common classes
 
 import os
 import sys
+import numpy as np
 import pandas as pd
 from datetime import datetime 
 from hebtools.common import extrema
 from hebtools.common import wave_stats
 
+def iter_loadtxt(filename, delimiter='', skiprows=0, dtype=float):
+    """ This function is adapted from Joe Kington's example on Stack Overflow
+    http://stackoverflow.com/questions/8956832/python-out-of-memory-on-large-csv-file-numpy """
+    def iter_func():
+        with open(filename, 'r') as infile:
+            for _ in range(skiprows):
+                next(infile)
+            for line in infile:
+                line = line.rstrip().split()
+                for item in line:
+                    yield dtype(item)
+        iter_loadtxt.rowlength = len(line)
+
+    data = np.fromiter(iter_func(), dtype=dtype)
+    data = data.reshape((-1, iter_loadtxt.rowlength))
+    return data
+
+
 class ParseWad:
     
     def __init__(self, wad_file_path):
         print os.getcwd()
-        path = '/'.join(wad_file_path.split('/')[:-1])
+        if '/' in wad_file_path:
+            path = '/'.join(wad_file_path.split('/')[:-1])
+            wad_file_path = wad_file_path.split('/')[-1:][0]
+        else:
+            path = '.'    
         os.chdir(path)
-        self.parse_wad(wad_file_path.split('/')[-1:][0])
+        self.parse_wad(wad_file_path)
+        
 
+        
     def parse_wad(self, wad_file_path):
-        wad_df = pd.read_csv(wad_file_path, delimiter = r'\s*')
+        wad_df = pd.DataFrame(iter_loadtxt(wad_file_path))
         columns = ['month', 'day', 'year', 'hour', 'minute', 'seconds', 
                    'pressure', 'ast_distance1_beam4', 'ast_distance2_beam4', 
                    'ast_quality_beam4', 'analog_input', 
