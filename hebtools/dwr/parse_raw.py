@@ -30,8 +30,30 @@ import glob
 import sys
 import pandas as pd
 import error_check
+import problem_files
 from hebtools.common.wave_stats import WaveStats
 from hebtools.common.extrema import GetExtrema
+
+def iter_loadtxt(filename, skiprows=0, dtype=np.int):
+    """ This function is adapted from Joe Kington's example on Stack Overflow
+    http://stackoverflow.com/questions/8956832/python-out-of-memory-on-large-csv-file-numpy """
+    def iter_func():
+        with open(filename, 'r') as infile:
+            for _ in range(skiprows):
+                next(infile)
+            for line in infile:
+                line = line.rstrip().split(',') 
+                if len(line)==4:                
+                    for item in line:
+                        try:                        
+                            yield dtype(item)
+                        except ValueError:
+                            print "Bad Record"
+                            yield dtype(0)
+
+    data = np.fromiter(iter_func(), dtype=dtype)
+    data = data.reshape((-1, 4))
+    return data
         
 def load(folder_path, year = None):
     
@@ -75,20 +97,36 @@ def load(folder_path, year = None):
         np.save("prob_files",np.array(problem_files))
         print("finish iterate_over_files")
         return big_raw_array
+
+    # def iterate_over_file(filepath, raw_cols):
+        # try:
+            # raw_file = open(filepath)
+            # raw_records = raw_file.readlines()
+            # if len(raw_records) == 0:
+                # return None, True
+            # records = []
+            # for record in raw_records:
+                # returned_record = parse_record(record)
+                # if returned_record:
+                    # records.append(returned_record)
+            # raw_array = pd.DataFrame(records,columns=raw_cols,dtype=np.int)
+            # file_name_df = pd.DataFrame([filepath]*len(records),columns=['file_name'])
+            # raw_array = raw_array.join(file_name_df)
+        # except StopIteration:
+            # print(filepath, "StopIteration")
+            # return None, True
+        # raw_file_length = len(raw_array)
+        # if raw_file_length > 2500 or raw_file_length == 0:
+            # print("Possibly serious errors in transmission")
+            # return None, True
+        # raw_array.index = get_rounded_timestamps(filepath, len(raw_array))
+        
+        # return raw_array, False
         
     def iterate_over_file(filepath, raw_cols):
         try:
-            raw_file = open(filepath)
-            raw_records = raw_file.readlines()
-            if len(raw_records) == 0:
-                return None, True
-            records = []
-            for record in raw_records:
-                returned_record = parse_record(record)
-                if returned_record:
-                    records.append(returned_record)
-            raw_array = pd.DataFrame(records,columns=raw_cols,dtype=np.int)
-            file_name_df = pd.DataFrame([filepath]*len(records),columns=['file_name'])
+            raw_array = pd.DataFrame(iter_loadtxt(filepath) ,columns=raw_cols)
+            file_name_df = pd.DataFrame([filepath]*len(raw_array),columns=['file_name'])
             raw_array = raw_array.join(file_name_df)
         except StopIteration:
             print(filepath, "StopIteration")
@@ -99,7 +137,7 @@ def load(folder_path, year = None):
             return None, True
         raw_array.index = get_rounded_timestamps(filepath, len(raw_array))
         
-        return raw_array, False
+        return raw_array, False        
         
     def parse_record(record):
         record_list = record.split(',')
@@ -122,6 +160,7 @@ def load(folder_path, year = None):
             year_dirs = os.listdir(folder_path)
             for year_dir in year_dirs:
                 iterate_over_months(os.path.join(folder_path,year_dir))
+            problem_files.concat(folder_path)
         
     def iterate_over_months(year_folder_path):
         print year_folder_path
@@ -133,5 +172,6 @@ def load(folder_path, year = None):
                 extrema_df = GetExtrema(month_raw_displacements)
                 raw_plus_std = error_check.check(extrema_df.raw_disp_with_extrema)
                 WaveStats(raw_plus_std)
+        
                
     iterate_over_years(year, folder_path)
