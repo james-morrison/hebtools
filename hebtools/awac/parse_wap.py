@@ -42,6 +42,7 @@ def load(path):
         
     date_times_index = pd.DatetimeIndex(date_times)
     wap_file.index = date_times_index
+    wap_file = wap_file[wap_file['Error Code']==0]
     file_name = file_name[:-4]
     wap_file.save(file_name + '_wap_df')
     wap_file.to_excel(file_name + '_wap' + '.xlsx')

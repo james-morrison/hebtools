@@ -57,7 +57,7 @@ class TestWaveConcat(unittest.TestCase):
     def setUp(self):
         wave_concat.iterate_over_buoy_years('../../buoy_data')
 
-    def test_wave_height_dataframe(self):
+    def test_wave_concat(self):
         wave_height_stats_df = pd.load('large_wave_height_df')
         self.assertEqual(len(wave_height_stats_df),number_of_waves)       
         
