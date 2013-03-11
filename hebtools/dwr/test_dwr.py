@@ -18,8 +18,7 @@ class TestParseRaw(unittest.TestCase):
 
    def setUp(self):
        try:        
-           folder_path = test_folder_path
-           parse_raw.load(folder_path)
+           parse_raw.load(test_folder_path)
        except WindowsError:
            print "Load Raw Files failed"
 

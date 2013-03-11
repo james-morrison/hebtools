@@ -97,31 +97,6 @@ def load(folder_path, year = None):
         np.save("prob_files",np.array(problem_files))
         print("finish iterate_over_files")
         return big_raw_array
-
-    # def iterate_over_file(filepath, raw_cols):
-        # try:
-            # raw_file = open(filepath)
-            # raw_records = raw_file.readlines()
-            # if len(raw_records) == 0:
-                # return None, True
-            # records = []
-            # for record in raw_records:
-                # returned_record = parse_record(record)
-                # if returned_record:
-                    # records.append(returned_record)
-            # raw_array = pd.DataFrame(records,columns=raw_cols,dtype=np.int)
-            # file_name_df = pd.DataFrame([filepath]*len(records),columns=['file_name'])
-            # raw_array = raw_array.join(file_name_df)
-        # except StopIteration:
-            # print(filepath, "StopIteration")
-            # return None, True
-        # raw_file_length = len(raw_array)
-        # if raw_file_length > 2500 or raw_file_length == 0:
-            # print("Possibly serious errors in transmission")
-            # return None, True
-        # raw_array.index = get_rounded_timestamps(filepath, len(raw_array))
-        
-        # return raw_array, False
         
     def iterate_over_file(filepath, raw_cols):
         try:
@@ -138,29 +113,19 @@ def load(folder_path, year = None):
         raw_array.index = get_rounded_timestamps(filepath, len(raw_array))
         
         return raw_array, False        
-        
-    def parse_record(record):
-        record_list = record.split(',')
-        # Checking that record is valid format
-        if len(record_list) == 4:
-            new_array = []
-            for value in record_list:
-                value = value.strip()
-                if value == '' or 'E' in value:
-                    return None
-                else:
-                    new_array.append(long(value.strip('\n')))
-            return new_array
-        return None
     
     def iterate_over_years(year, folder_path):
+        print year
+        print os.getcwd()
         if year != None:
             iterate_over_months(os.path.join(folder_path,str(year)))
         else:
             year_dirs = os.listdir(folder_path)
             for year_dir in year_dirs:
-                iterate_over_months(os.path.join(folder_path,year_dir))
-            problem_files.concat(folder_path)
+                year_path = os.path.join(folder_path,year_dir)
+                if os.path.isdir(year_path):
+                    iterate_over_months(year_path)
+            problem_files.concat('.')
         
     def iterate_over_months(year_folder_path):
         print year_folder_path

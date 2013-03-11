@@ -15,8 +15,9 @@ def concat(buoy_path):
             prob_files_np = np.load('prob_files.npy')
             large_np_array = np.concatenate([large_np_array, prob_files_np])
             os.chdir('..')
-    np.save(buoy_path + os.path.sep + 'prob_files', large_np_array)
-    np.savetxt(buoy_path + os.path.sep + 'problem_files.csv', large_np_array, fmt='%s')
+        os.chdir('..')
+    np.save('prob_files', large_np_array)
+    np.savetxt('problem_files.csv', large_np_array, fmt='%s')
 
 if __name__ == "__main__":
     if len(sys.argv) != 1:

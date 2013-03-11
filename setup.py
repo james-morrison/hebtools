@@ -1,4 +1,5 @@
 from setuptools import setup
+
 setup(name='hebtools',
       version='0.1',
       author='James Morrison',
@@ -7,5 +8,5 @@ setup(name='hebtools',
       license='MIT',
       description='Tools for processing Datawell Waverider raw files',
       packages=['hebtools', 'hebtools/awac', 'hebtools/dwr', 'hebtools/common'],
-      requires=['matplotlib','pandas',]
+      requires=['matplotlib','pandas']
       )
