@@ -16,6 +16,7 @@ import logging
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 time_based_stats = True
+columns = ['start_times', 'end_times', 'h_max', 'h_1_3_mean', 'h_avg', 'h_std']
 
 def timestamp_to_half_hour(timestamp, set_length_seconds):
     unix_timestamp = time.mktime(timestamp.timetuple())
@@ -24,11 +25,12 @@ def timestamp_to_half_hour(timestamp, set_length_seconds):
 def arrays_to_df_excel(stats_dict, awac_name, path):
     index_df = pd.DatetimeIndex(stats_dict['start_times'])
     stats_dfs = []
-    for column in ['h_max', 'h_avg', 'h_std', 'h_1_3_mean','end_times']:
-        stats_dfs.append(pd.DataFrame(stats_dict[column], index=index_df, 
+    for column in columns:
+        stats_dfs.append(pd.DataFrame(stats_dict[column], 
                                      columns=[column]))
                                      
     set_df = pd.concat(stats_dfs, axis=1)
+    set_df = set_df.set_index(columns[0])
     file_name = 'wave_h_' + str(stats_dict['set_size']) + '_set_' + awac_name
     set_df.save(file_name)
     set_df.to_excel(file_name + '.xlsx')
@@ -38,9 +40,8 @@ def get_stats_from_df(large_dataframe, series_name, half_hourly = True):
     """ Generates statistics ( defaulting to half hourly ) for awac wave 
     heights """
     large_dataframe = large_dataframe.sort()
-    
-    stats_dict = {'start_times':[], 'end_times':[], 'h_max':[], 
-                  'h_1_3_mean':[], 'h_avg':[], 'h_std':[]}
+    stats_dict = dict([(column,[]) for column in columns])
+
     if time_based_stats:                          
         timestamp = large_dataframe.ix[0].name
         last_timestamp = large_dataframe.ix[-1].name
@@ -68,12 +69,12 @@ def get_stats_from_df(large_dataframe, series_name, half_hourly = True):
         else:
             subset = large_dataframe.ix[x-set_size:x]
         if len(subset) != 0:
-            stats_dict['start_times'].append(subset.index[0])
-            stats_dict['end_times'].append(subset.index[-1])
-            stats_dict['h_1_3_mean'].append(subset[series_name].order()[-(len(subset)/3):].mean())
-            stats_dict['h_avg'].append(subset.mean()[0])
-            stats_dict['h_std'].append(subset.std()[0])
-            stats_dict['h_max'].append(subset.max()[0])
+            stats_dict[columns[0]].append(subset.index[0])
+            stats_dict[columns[1]].append(subset.index[-1])
+            stats_dict[columns[2]].append(subset.max()[0])
+            stats_dict[columns[3]].append(subset[series_name].order()[-(len(subset)/3):].mean())
+            stats_dict[columns[4]].append(subset.mean()[0])
+            stats_dict[columns[5]].append(subset.std()[0])
     logging.info("finished stats")
     return stats_dict 
 

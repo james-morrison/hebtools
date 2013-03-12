@@ -96,6 +96,6 @@ class WaveStats:
             wave_height_df = wave_height_df.join(file_name_df)    
             wave_height_df = self.check_wave_height_dataframe(wave_height_df)
         wave_height_df.save(df_file_name)
-        logging.info("end calc_stats", wave_height_df.describe())
+        logging.info(wave_height_df.describe())
         
         
