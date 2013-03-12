@@ -11,6 +11,7 @@ import os
 import sys
 import pandas as pd
 import numpy as np
+from collections import OrderedDict
 
 def filter_maximums(heave_std_series, max_series, multiple, grouped_df):
     max_series[max_series>(heave_std_series*multiple)]
@@ -32,38 +33,32 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path, sigma = 3.5):
     [new_cols.append(x) for x in cols[1:]]
     reset_index_df.columns = new_cols
     grouped_df = reset_index_df.groupby('file_name')
-    std_series = grouped_df[series_name].std()
-    std_series.name = 'h_std'
-    heave_file_std_series = grouped_df['heave_file_std'].first()
-    heave_file_std_series.name = 'heave_file_std'
-    max_series = grouped_df[series_name].max()    
-    max_series.name = 'h_max'
+    series_dict = OrderedDict()
+    columns = {'std':'h_std', 'file_std':'heave_file_std', 'max':'h_max', 
+               'avg':'h_avg', '1_3':'h_1_3_mean', 'rms':'h_rms', 
+               'm_std_fac':'max_std_factor', 'std_fac':'heave_file_std_over_h_std',
+               'avg_fac':'heave_file_std_over_h_avg', 'rms_fac':'heave_file_std_over_h_rms',
+               'end':'end_times'}
+    series_dict[columns['std']] = grouped_df[series_name].std()
+    series_dict[columns['file_std']] = grouped_df[columns['file_std']].first()
+    series_dict[columns['max']] = grouped_df[series_name].max()    
     #filter_maximums(heave_file_std_series, max_series, heave_std_multiple, 
     #                grouped_df)
-    avg_series = grouped_df[series_name].mean()
-    avg_series.name = 'h_avg'
-    h_1_3_mean_series = grouped_df.wave_height_cm.apply(lambda x : x.order()[-(len(x)/3):].mean())    
-    h_1_3_mean_series.name = 'h_1_3_mean'
-    h_rms_series = grouped_df.wave_height_cm.apply(lambda x: np.sqrt((x**2).sum()/len(x)))
-    h_rms_series.name = 'h_rms'
-    max_std_factor_series = grouped_df['max_std_factor'].max()
-    max_std_factor_series.name = 'max_std_factor'
-    h_std_file_std = ( np.sqrt( 8- 2 * np.pi ) *  \
-                       heave_file_std_series) / std_series
-    h_std_file_std.name = 'heave_file_std_over_h_std'
-    h_avg_file_std = ( 2.5 *  heave_file_std_series) / avg_series
-    h_avg_file_std.name = 'heave_file_std_over_h_avg'
-    h_rms_file_std = ( np.sqrt(8) *  heave_file_std_series) / h_rms_series
-    h_rms_file_std.name = 'heave_file_std_over_h_rms'
-    end_timestamps_series = grouped_df[new_cols[0]].last()
-    end_timestamps_series.name = 'end_times'
+    series_dict[columns['avg']] = grouped_df[series_name].mean()
+    series_dict[columns['1_3']] = grouped_df.wave_height_cm.apply(lambda x : x.order()[-(len(x)/3):].mean())
+    series_dict[columns['rms']] = grouped_df.wave_height_cm.apply(lambda x: np.sqrt((x**2).sum()/len(x)))
+    series_dict[columns['m_std_fac']] = grouped_df['max_std_factor'].max()
+    series_dict[columns['std_fac']] = ( np.sqrt( 8- 2 * np.pi ) *  \
+                                        series_dict[columns['file_std']]) / \
+                                        series_dict[columns['std']]
+    series_dict[columns['avg_fac']] = ( 2.5 *  series_dict[columns['file_std']]) / \
+                                                 series_dict[columns['avg']]
+    series_dict[columns['rms_fac']]  = ( np.sqrt(8) *  series_dict[columns['file_std']]) /                                              series_dict[columns['rms']]
+    series_dict[columns['end']] = grouped_df[new_cols[0]].last() 
     start_timestamps = grouped_df[new_cols[0]].first().values
-    avg_max_std_end_df = pd.concat([std_series, max_series, avg_series, 
-                                    end_timestamps_series, h_1_3_mean_series, 
-                                    h_rms_series, heave_file_std_series, 
-                                    h_std_file_std, h_avg_file_std, 
-                                    h_rms_file_std, max_std_factor_series], 
+    avg_max_std_end_df = pd.concat(series_dict.values(), 
                                    axis=1)
+    avg_max_std_end_df.columns = series_dict.keys()                                   
     avg_max_std_end_df.index = start_timestamps
     file_names_df = pd.DataFrame(grouped_df.file_name.size().index, 
                                  columns = ['file_names'], 
