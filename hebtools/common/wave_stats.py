@@ -71,10 +71,8 @@ class WaveStats:
                 stats_dict[columns[0]].append(self.bad_subset(subset))
                 stats_dict[columns[1]].append(subset.max_std_factor.max())
                 stats_dict[columns[2]].append(subset.heave_file_std.max())
-        for column in columns:
-            stats_df.append(pd.DataFrame(stats_dict[column], columns=[column],
-                            index=wave_height_df.index[:-1]))
-        bool_std_heave_df = pd.concat(stats_df, axis=1)
+        bool_std_heave_df = pd.DataFrame(stats_dict,
+                                         index=wave_height_df.index[:-1])
         return wave_height_df.join(bool_std_heave_df)
     
     def calc_stats(self, column_name, error_check, series_name, df_file_name):
