@@ -23,11 +23,12 @@ def timestamp_to_half_hour(timestamp, set_length_seconds):
 
 def arrays_to_df_excel(stats_dict, awac_name, path):
     index_df = pd.DatetimeIndex(stats_dict['start_times'])
-    stat_dfs = []
+    stats_dfs = []
     for column in ['h_max', 'h_avg', 'h_std', 'h_1_3_mean','end_times']:
-        stat_dfs.append(pd.DataFrame(stats_dict[column], index=index_df, 
+        stats_dfs.append(pd.DataFrame(stats_dict[column], index=index_df, 
                                      columns=[column]))
-    set_df = stat_dfs[0].join(stat_dfs[1:])
+                                     
+    set_df = pd.concat(stats_dfs, axis=1)
     file_name = 'wave_h_' + str(stats_dict['set_size']) + '_set_' + awac_name
     set_df.save(file_name)
     set_df.to_excel(file_name + '.xlsx')

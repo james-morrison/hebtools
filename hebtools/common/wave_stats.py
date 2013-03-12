@@ -63,7 +63,7 @@ class WaveStats:
         between them for >4*std or signal_error true and if so remove the
         wave height"""
         columns = ['bad_wave', 'max_std_factor', 'heave_file_std']
-        stats_dict = {}
+        stats_dict = dict([(column,[]) for column in columns])
         stats_df = []
         for index, wave_height in enumerate(wave_height_df.iterrows()):
             if index+1 < len(wave_height_df):
@@ -83,13 +83,14 @@ class WaveStats:
         extrema = self.raw_disp
         extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
         differences = np.ediff1d(np.array(extrema[column_name]))
-        wave_height_timestamps = extrema.index[differences<0]
-        wave_heights = np.absolute(differences[differences<0])
+        sub_zero_diff = differences<0
+        wave_height_timestamps = extrema.index[sub_zero_diff]
+        wave_heights = np.absolute(differences[sub_zero_diff])
         wave_height_df = pd.DataFrame(wave_heights, columns=[series_name],
                                       index = wave_height_timestamps)
         logging.info(wave_height_df)
         if error_check:
-            file_names = extrema.file_name[differences<0]
+            file_names = extrema.file_name[sub_zero_diff]
             file_name_df = pd.DataFrame(file_names, columns=['file_name'], 
                                     index = wave_height_timestamps)
             wave_height_df = wave_height_df.join(file_name_df)    
