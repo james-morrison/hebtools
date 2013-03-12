@@ -71,19 +71,25 @@ class ParseWad:
         wave_stats.WaveStats(extrema_df.raw_disp_with_extrema, 'pressure', error_check=False, 
                   series_name = 'wave_height_decibar', 
                   df_file_name = 'awac_wave_height_df')
+    
+def join_wad(wad_dict):            
 
-    def join_df(self, wave_stat_df_1, name_1, wave_stat_df_2, name_2):
-        wave_stat_df_1 = rename_and_resample(wave_stat_df_1)
-        wave_stat_df_2 = rename_and_resample(wave_stat_df_1)
-        combined_wave_stat = wave_stat_df_1.join(wave_stat_df_2)
+    def join_df(wad_dict):
+        wad_list = []
+        for wad_name, wad_df in wad_dict.iteritems():
+            wad_list.append(rename_and_resample(wad_df, wad_name))
+        combined_wave_stat = wad_list[0].join(wad_list[1:])
         combined_wave_stat.save('combined_awacs_resampled_hour')
 
     def rename_and_resample(wave_stat_df, name):
         wave_stat_df = wave_stat_df.resample('1H')
-        for x in wave_stat_df_1.columns:
-            new_cols.append('name_1' + '_' + x)
+        new_cols = []
+        for x in wave_stat_df.columns:
+            new_cols.append(name + '_' + x)
         wave_stat_df.columns = new_cols
         return wave_stat_df    
+    
+    join_df(wad_dict)
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:        

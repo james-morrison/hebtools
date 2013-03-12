@@ -115,8 +115,6 @@ def load(folder_path, year = None):
         return raw_array, False        
     
     def iterate_over_years(year, folder_path):
-        print year
-        print os.getcwd()
         if year != None:
             iterate_over_months(os.path.join(folder_path,str(year)))
         else:
@@ -137,6 +135,5 @@ def load(folder_path, year = None):
                 extrema_df = GetExtrema(month_raw_displacements)
                 raw_plus_std = error_check.check(extrema_df.raw_disp_with_extrema)
                 WaveStats(raw_plus_std)
-        
-               
+              
     iterate_over_years(year, folder_path)

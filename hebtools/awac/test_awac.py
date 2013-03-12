@@ -9,35 +9,36 @@ from hebtools.awac import parse_wad
 from hebtools.awac import parse_wap
 from hebtools.awac import awac_stats
 
-awac_folder_path = '../../awac_data/'
-number_of_records = 998
+awac_folder_path = os.path.abspath('../../awac_data/') + os.path.sep
+print awac_folder_path
+number_of_records = 999
 wad_records = 99
 number_of_awac_stats = 1
 
-# class TestParseWad(unittest.TestCase):
+class TestParseWad(unittest.TestCase):
 
-    # def setUp(self):
-        # try:        
-            # path = awac_folder_path + 'test_data.wad'
-            # parse_wad.ParseWad(path)
-        # except WindowsError:
-            # print "Load Wad Files failed"
+    def setUp(self):
+        try:        
+            path = awac_folder_path + 'test_data.wad'
+            parse_wad.ParseWad(path)
+        except WindowsError:
+            print "Load Wad Files failed"
 
-    # def test_wad_dataframe(self):
-        # wad_dataframe = pd.load('test_data_wad_df')
-        # self.assertEqual(len(wad_dataframe),number_of_records)
+    def test_wad_dataframe(self):
+        wad_dataframe = pd.load('test_data_wad_df')
+        self.assertEqual(len(wad_dataframe),number_of_records)
         
-# class TestParseWap(unittest.TestCase):
+class TestParseWap(unittest.TestCase):
 
-    # def setUp(self):
-        # try:        
-            # parse_wap.load(awac_folder_path + 'test_data.wap')
-        # except WindowsError:
-            # print "Load wap Files failed"
+    def setUp(self):
+        try:        
+            parse_wap.load(awac_folder_path + 'test_data.wap')
+        except WindowsError:
+            print "Load wap Files failed"
 
-    # def test_wap_dataframe(self):
-        # wap_dataframe = pd.load('test_data_wap_df')
-        # self.assertEqual(len(wap_dataframe),wad_records)
+    def test_wap_dataframe(self):
+        wap_dataframe = pd.load('test_data_wap_df')
+        self.assertEqual(len(wap_dataframe),wad_records)
 
 class TestAwacStats(unittest.TestCase):
 

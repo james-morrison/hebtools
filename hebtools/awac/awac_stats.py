@@ -12,24 +12,22 @@ import pandas as pd
 import numpy as np
 import time
 from datetime import datetime
+import logging
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 time_based_stats = True
 
-def timestamp_to_nearest_half_hour(timestamp, set_length_seconds):
+def timestamp_to_half_hour(timestamp, set_length_seconds):
     unix_timestamp = time.mktime(timestamp.timetuple())
     return round( unix_timestamp / set_length_seconds ) * set_length_seconds
 
 def arrays_to_df_excel(stats_dict, awac_name, path):
     index_df = pd.DatetimeIndex(stats_dict['start_times'])
-    end_df = pd.DataFrame(stats_dict['end_times'], index=index_df, 
-                          columns=['end_times'])
-    h_1_3_mean_df = pd.DataFrame(stats_dict['h_1_3_mean'], index=index_df, 
-                                 columns=['h_1_3_mean'])
-    h_max_df = pd.DataFrame(stats_dict['h_max'], index=index_df, columns=['h_max'])
-    h_avg_df = pd.DataFrame(stats_dict['h_avg'], index=index_df, columns=['h_avg'])
-    h_std_df = pd.DataFrame(stats_dict['h_std'], index=index_df, columns=['h_std'])
-    set_df = h_max_df.join([h_1_3_mean_df, h_avg_df, h_std_df, end_df])
-    print set_df
+    stat_dfs = []
+    for column in ['h_max', 'h_avg', 'h_std', 'h_1_3_mean','end_times']:
+        stat_dfs.append(pd.DataFrame(stats_dict[column], index=index_df, 
+                                     columns=[column]))
+    set_df = stat_dfs[0].join(stat_dfs[1:])
     file_name = 'wave_h_' + str(stats_dict['set_size']) + '_set_' + awac_name
     set_df.save(file_name)
     set_df.to_excel(file_name + '.xlsx')
@@ -47,13 +45,16 @@ def get_stats_from_df(large_dataframe, series_name, half_hourly = True):
         last_timestamp = large_dataframe.ix[-1].name
         if half_hourly:
             time_set = 1800 
-            first_nearest_halfhour = timestamp_to_nearest_half_hour(timestamp, time_set)
-            last_nearest_halfhour = timestamp_to_nearest_half_hour(last_timestamp, time_set)
-            index = np.arange(first_nearest_halfhour, last_nearest_halfhour + time_set, time_set)
+            first_halfhour = timestamp_to_half_hour(timestamp, time_set)
+            last_halfhour = timestamp_to_half_hour(last_timestamp, time_set)
+            index = np.arange(first_halfhour, last_halfhour + time_set, 
+                              time_set)
             set_size = 'half_hour'
         else: 
             time_set = 3600
-            index = np.arange(time.mktime(timestamp.timetuple()), time.mktime(last_timestamp.timetuple()), time_set)
+            index = np.arange(time.mktime(timestamp.timetuple()), 
+                              time.mktime(last_timestamp.timetuple()), 
+                              time_set)
             set_size = 'hour'
         stats_dict['set_size'] = set_size
     else:
@@ -62,8 +63,6 @@ def get_stats_from_df(large_dataframe, series_name, half_hourly = True):
         index = np.arange(set_size,len(large_dataframe),set_size)
     for x in index:
         if time_based_stats:
-            print datetime.utcfromtimestamp(x-time_set)
-            print datetime.utcfromtimestamp(x)
             subset = large_dataframe.ix[datetime.utcfromtimestamp(x-time_set):datetime.utcfromtimestamp(x)]
         else:
             subset = large_dataframe.ix[x-set_size:x]
@@ -74,7 +73,7 @@ def get_stats_from_df(large_dataframe, series_name, half_hourly = True):
             stats_dict['h_avg'].append(subset.mean()[0])
             stats_dict['h_std'].append(subset.std()[0])
             stats_dict['h_max'].append(subset.max()[0])
-    "finished stats"
+    logging.info("finished stats")
     return stats_dict 
 
 def process_wave_height(awac_path):

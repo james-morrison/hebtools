@@ -71,11 +71,6 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path, sigma = 3.5):
     all_stats_df = avg_max_std_end_df.join(file_names_df)
     all_stats_df.to_excel(path + 'wave_h_groupby_' + str(sigma) + '.xlsx')
     all_stats_df.save(path + 'stats_groupby_df_' + str(sigma))
-    #print "sigma ", str(sigma)
-    #print all_stats_df.describe()
-    #print np.mean([all_stats_df.heave_file_std_over_h_avg.mean(),
-    #               all_stats_df.heave_file_std_over_h_std.mean(),
-    #               all_stats_df.heave_file_std_over_h_rms.mean()])
     
 def iterate_over_buoy_years(buoy_path):
     os.chdir(buoy_path)

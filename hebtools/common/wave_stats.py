@@ -24,7 +24,6 @@ class WaveStats:
         heave = self.raw_disp[column_name]
         indices = find((heave[1:]>=0)&(heave[:-1]<0))
         crossings = [i - heave[i] / (heave[i+1] - heave[i]) for i in indices]
-        np.save('crossings',crossings)
         zero_cross_t_stamps = []
         for crossing in crossings:
             #Check if zero cross occurs at the end of the time-series
@@ -33,7 +32,8 @@ class WaveStats:
             else:
                 difference = timestamps[int(crossing)]-timestamps[int(crossing+1)]
                 fraction = crossing-int(crossing)
-                zero_cross_t_stamps.append(timestamps[int(crossing)] + difference * fraction)
+                timestamp = timestamps[int(crossing)] + difference * fraction
+                zero_cross_t_stamps.append(timestamp)
         zero_crossing_timestamps_np = np.array(zero_cross_t_stamps)
         zero_upcross_periods = np.ediff1d(zero_crossing_timestamps_np)
         def get_datetime(x):
@@ -62,40 +62,32 @@ class WaveStats:
         and the timestamp of the next wave height and check the interval
         between them for >4*std or signal_error true and if so remove the
         wave height"""
-        bad_wave_booleans = []
-        max_std_factor = []
-        heave_file_std = []
+        columns = ['bad_wave', 'max_std_factor', 'heave_file_std']
+        stats_dict = {}
+        stats_df = []
         for index, wave_height in enumerate(wave_height_df.iterrows()):
             if index+1 < len(wave_height_df):
                 subset = self.raw_disp.ix[wave_height[0]:wave_height_df.ix[index+1].name]
-                bad_wave_booleans.append(self.bad_subset(subset))
-                max_std_factor.append(subset.max_std_factor.max())
-                heave_file_std.append(subset.heave_file_std.max())
-        print len(bad_wave_booleans), wave_height_df
-        bool_df = pd.DataFrame(bad_wave_booleans, columns=['bad_wave'],
-                               index=wave_height_df.index[:-1])
-        std_df = pd.DataFrame(max_std_factor, columns=['max_std_factor'],
-                              index=wave_height_df.index[:-1])
-        heave_df = pd.DataFrame(heave_file_std, columns=['heave_file_std'],
-                              index=wave_height_df.index[:-1])                                   
-        bool_std_heave_df = pd.concat([bool_df, std_df, heave_df],
-                                axis=1)
+                stats_dict[columns[0]].append(self.bad_subset(subset))
+                stats_dict[columns[1]].append(subset.max_std_factor.max())
+                stats_dict[columns[2]].append(subset.heave_file_std.max())
+        for column in columns:
+            stats_df.append(pd.DataFrame(stats_dict[column], columns=[column],
+                            index=wave_height_df.index[:-1]))
+        bool_std_heave_df = pd.concat(stats_df, axis=1)
         return wave_height_df.join(bool_std_heave_df)
     
     def calc_stats(self, column_name, error_check, series_name, df_file_name):
-        logging.info("start calc_stats")
-        # wave heights are calculated from peak to trough
+        """ wave heights are calculated from peak to trough """        
+        logging.info("start calc_stats")        
         extrema = self.raw_disp
         extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
-        extrema.save('check_extrema')
         differences = np.ediff1d(np.array(extrema[column_name]))
-        np.save('differences',differences)
         wave_height_timestamps = extrema.index[differences<0]
         wave_heights = np.absolute(differences[differences<0])
-        np.save('wave_heights',wave_heights)
         wave_height_df = pd.DataFrame(wave_heights, columns=[series_name],
                                       index = wave_height_timestamps)
-        print wave_height_df
+        logging.info(wave_height_df)
         if error_check:
             file_names = extrema.file_name[differences<0]
             file_name_df = pd.DataFrame(file_names, columns=['file_name'], 
@@ -103,6 +95,6 @@ class WaveStats:
             wave_height_df = wave_height_df.join(file_name_df)    
             wave_height_df = self.check_wave_height_dataframe(wave_height_df)
         wave_height_df.save(df_file_name)
-        print wave_height_df.describe()
+        logging.info("end calc_stats", wave_height_df.describe())
         
         
