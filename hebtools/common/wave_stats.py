@@ -62,18 +62,16 @@ class WaveStats:
         and the timestamp of the next wave height and check the interval
         between them for >4*std or signal_error true and if so remove the
         wave height"""
-        columns = ['bad_wave', 'max_std_factor', 'heave_file_std']
+        columns = ['max_std_factor', 'heave_file_std']
         stats_dict = dict([(column,[]) for column in columns])
-        stats_df = []
-        for index, wave_height in enumerate(wave_height_df.iterrows()):
-            if index+1 < len(wave_height_df):
-                subset = self.raw_disp.ix[wave_height[0]:wave_height_df.ix[index+1].name]
-                stats_dict[columns[0]].append(self.bad_subset(subset))
-                stats_dict[columns[1]].append(subset.max_std_factor.max())
-                stats_dict[columns[2]].append(subset.heave_file_std.max())
-        bool_std_heave_df = pd.DataFrame(stats_dict,
-                                         index=wave_height_df.index[:-1])
-        return wave_height_df.join(bool_std_heave_df)
+        indexes = np.where(np.in1d(self.raw_disp.index, wave_height_df.index))
+        df_list = np.split(self.raw_disp, indexes[0])[1:]
+        for subset in df_list:
+                stats_dict[columns[0]].append(subset.max_std_factor.max())
+                stats_dict[columns[1]].append(subset.heave_file_std.max())
+        print len(stats_dict[columns[1]]), len(wave_height_df.index)
+        stats_df = pd.DataFrame(stats_dict, index=wave_height_df.index)
+        return wave_height_df.join(stats_df)
     
     def calc_stats(self, column_name, error_check, series_name, df_file_name):
         """ wave heights are calculated from peak to trough """        
