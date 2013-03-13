@@ -28,7 +28,7 @@ a good format for doing time series analysis. As well as the large DataFrame
 providing details on individual waves extracted from the displacements. An 
 optional year parameter can be supplied to process a specific year folder. For 
 more details on the approach taken to process the files please [see the 
-wiki](https://bitbucket.org/jamesmorrison/datawell-waverider-raw-files-to-pandas-dataframe/wiki/Home) 
+wiki](https://bitbucket.org/jamesmorrison/hebtools/wiki/Home) 
 
 Masking and calculation of the standard deviation of displacement values takes 
 place in the **error_check** module 
@@ -77,15 +77,21 @@ of the [Hebridean Marine Energy Futures](http://hebmarine.com) project.
 Requires: 
 
 - [Python 2.7](http://python.org/download/) ( developed and tested with 2.7.3 ) 
-- [Numpy](http://numpy.scipy.org) ( developed and tested with 1.6.2 ) 
-- [Pandas](http://pandas.pydata.org) ( minimum 0.10.1 ) 
-- [Matplotlib](http://matplotlib.org) ( developed and tested with 1.2.0 ) 
-- [openpyxl](http://bitbucket.org/ericgazoni/openpyxl/src) ( developed and tested 
-with 1.6.1 ) 
+- [numpy](http://numpy.scipy.org) ( developed and tested with 1.6.2 ) 
+- [pandas](http://pandas.pydata.org) ( minimum 0.10.1 ) 
+- [matplotlib](http://matplotlib.org) ( developed and tested with 1.2.0 ) 
+- [openpyxl](http://bitbucket.org/ericgazoni/openpyxl/src) ( developed and 
+tested with 1.6.1 ) 
 
 Almost all of the above requirements can be satisfied with a Python distribution 
 like [Anaconda CE](http://continuum.io/downloads.html). 
 
 openpyxl can be installed afterwards by running 'easy_install openpyxl' from the 
 Anaconda scripts directory. 
+
+Recommended optional dependencies for speed are
+[numexpr](https://code.google.com/p/numexpr/) and 
+[bottleneck](https://pypi.python.org/pypi/Bottleneck), Windows binaries 
+for these packages are available from 
+[Christoph Gohlke's page](http://www.lfd.uci.edu/~gohlke/pythonlibs/)
 
