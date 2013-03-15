@@ -14,52 +14,55 @@ print os.getcwd()
 
 number_of_waves = 313053
 test_folder_path = os.path.abspath('../../buoy_data/') + os.path.sep
+year = '2013'
+month = 'February'
     
 class TestParseRaw(unittest.TestCase):
 
    def setUp(self):
        try:        
-           parse_raw.load(test_folder_path)
+           parse_raw.load(test_folder_path, year)
        except WindowsError:
            print "Load Raw Files failed"
 
    def test_wave_height_dataframe(self):
+       print os.getcwd()
        wave_height_dataframe = pd.load('wave_height_dataframe')
        self.assertEqual(len(wave_height_dataframe),number_of_waves)
 
-class TestWaveStats(unittest.TestCase):
+# class TestWaveStats(unittest.TestCase):
 
-    def setUp(self):
-        print "Test"
+    # def setUp(self):
+        # print "Test"
 
-    def test_wave_height_dataframe(self):
-        os.chdir(os.path.join(test_folder_path,'2005','july'))
-        raw_plus_std = pd.load('raw_plus_std')
-        wave_stats.WaveStats(raw_plus_std)
-        wave_height_dataframe = pd.load('wave_height_dataframe')
-        self.assertEqual(len(wave_height_dataframe),number_of_waves)
+    # def test_wave_height_dataframe(self):
+        # os.chdir(os.path.join(test_folder_path, year, month))
+        # raw_plus_std = pd.load('raw_plus_std')
+        # wave_stats.WaveStats(raw_plus_std)
+        # wave_height_dataframe = pd.load('wave_height_dataframe')
+        # self.assertEqual(len(wave_height_dataframe),number_of_waves)
         
-class TestProblemFiles(unittest.TestCase):
+# class TestProblemFiles(unittest.TestCase):
 
-   def setUp(self):
-       try:        
-           problem_files.concat(test_folder_path)
-       except WindowsError:
-           print "ProblemFileConcat failed"
+   # def setUp(self):
+       # try:        
+           # problem_files.concat(test_folder_path)
+       # except WindowsError:
+           # print "ProblemFileConcat failed"
 
-   def test_problem_file_concat(self):
-       os.chdir(test_folder_path)
-       prob_files = np.load('prob_files.npy')
-       self.assertEqual(len(prob_files),0)  
+   # def test_problem_file_concat(self):
+       # os.chdir(test_folder_path)
+       # prob_files = np.load('prob_files.npy')
+       # self.assertEqual(len(prob_files),0)  
 
-class TestWaveConcat(unittest.TestCase):
+# class TestWaveConcat(unittest.TestCase):
 
-    def setUp(self):
-        wave_concat.iterate_over_buoy_years(test_folder_path)
+    # def setUp(self):
+        # wave_concat.iterate_over_buoy_years(test_folder_path)
 
-    def test_wave_concat(self):
-        wave_height_stats_df = pd.load('large_wave_height_df')
-        self.assertEqual(len(wave_height_stats_df),number_of_waves)       
+    # def test_wave_concat(self):
+        # wave_height_stats_df = pd.load('large_wave_height_df')
+        # self.assertEqual(len(wave_height_stats_df),number_of_waves)       
         
 
 if __name__=='__main__':
