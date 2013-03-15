@@ -40,35 +40,36 @@ def get_func_list():
     def std(x): return x.std()    
     return [first, last, h_1_3, max, mean, std]
 
-def time_stats(large_dataframe, half_hourly):    
+def time_stats(large_dataframe, half_hourly, series_name):    
     if half_hourly:
-        grouper = pd.TimeGrouper("30min")
+        interval = "30min"
     else:       
-        grouper = pd.TimeGrouper("1H")
-    stats_dict['set_size'] = set_size
-    grouped_df_time = large_dataframe.groupby(grouper)
+        interval = "1H"
+    grouped_df_time = large_dataframe.groupby(pd.TimeGrouper(interval))
     series_list = []
     func_list = get_func_list()
     for func in func_list:
         series_list.append(grouped_df_time[series_name].apply(func))
     stats_df = pd.concat(series_list, axis=1)
     stats_df.columns = columns
-    stats_df.save('awac_stats')
-    stats_df.save('awac_stats.xlsx')
+    file_name = 'awac_stats_' + interval
+    stats_df.save(file_name)
+    stats_df.save(file_name + '.xlsx')
 
-    def get_stats_from_df(large_dataframe, series_name, path, half_hourly = True):
+def get_stats_from_df(large_dataframe, series_name, path, half_hourly = True):
     """ Generates statistics ( defaulting to half hourly ) for awac wave 
     heights """
     large_dataframe = large_dataframe.sort()
     stats_dict = dict([(column,[]) for column in columns])
     if time_based_stats:                          
-        time_stats(large_dataframe, half_hourly)
+        time_stats(large_dataframe, half_hourly, series_name)
     else:
         set_size = 100
         stats_dict['set_size'] = set_size
-        index = np.arange(set_size,len(large_dataframe),set_size)
-        for x in index:
-            subset = large_dataframe.ix[x-set_size:x]
+        #index = np.arange(set_size,len(large_dataframe),set_size)
+        df_list = np.array_split(large_dataframe,np.arange(0,len(large_dataframe),
+                       set_size))[1:]
+        for subset in df_list:
             if len(subset) != 0:
                 for index, func in enumerate(get_func_list()):       
                     stats_dict[columns[index]].append(func(subset))
