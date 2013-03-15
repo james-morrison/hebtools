@@ -18,8 +18,8 @@ class WaveStats:
             self.get_zero_upcross_periods(column_name)
     
     def get_zero_upcross_periods(self, column_name):
-        logging.info('start get_zero_upcross_periods')
         """ Based on code from https://gist.github.com/255291"""
+        logging.info('start get_zero_upcross_periods')
         timestamps = [calendar.timegm(x.utctimetuple()) for x in self.raw_disp.index]
         heave = self.raw_disp[column_name]
         indices = find((heave[1:]>=0)&(heave[:-1]<0))
