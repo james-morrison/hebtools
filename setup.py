@@ -7,6 +7,6 @@ setup(name='hebtools',
       url='http://jamesmorrison.bitbucket.org',
       license='MIT',
       description='Tools for processing Datawell Waverider raw files',
-      packages=['hebtools', 'hebtools/awac', 'hebtools/dwr', 'hebtools/common'],
+      packages=['hebtools', 'hebtools/awac', 'hebtools/dwr', 'hebtools/common', 'hebtools/test'],
       requires=['matplotlib','pandas']
       )
