@@ -1,4 +1,15 @@
-from setuptools import setup
+from setuptools import setup, find_packages
+import os
+
+test_data_files = []
+test_dir = 'hebtools\\test\\data'
+for paths,dirs,files in os.walk(test_dir):
+  print paths
+  print dirs
+  print files
+  test_data_files += [[paths, [os.path.join(paths,directory) for directory in files]]]
+  
+print test_data_files
 
 setup(name='hebtools',
       version='0.1',
@@ -7,6 +18,9 @@ setup(name='hebtools',
       url='http://jamesmorrison.bitbucket.org',
       license='MIT',
       description='Tools for processing Datawell Waverider raw files',
-      packages=['hebtools', 'hebtools/awac', 'hebtools/dwr', 'hebtools/common', 'hebtools/test'],
-      requires=['matplotlib','pandas']
+      packages=['hebtools', 'hebtools/awac', 'hebtools/dwr', 'hebtools/common',
+                'hebtools/test', 'hebtools/test/data/awac', 'hebtools/test/data/waverider'],
+      requires=['matplotlib','pandas'],
+      data_files = test_data_files,
+      include_package_data=True
       )

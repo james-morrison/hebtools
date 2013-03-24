@@ -5,11 +5,12 @@ author: James Morrison
 import unittest
 import os
 import pandas as pd
+import time
 from hebtools.awac import parse_wad
 from hebtools.awac import parse_wap
 from hebtools.awac import awac_stats
 
-awac_folder_path = os.path.abspath('../../awac_data/') + os.path.sep
+awac_folder_path = os.path.abspath('data/awac') + os.path.sep
 print awac_folder_path
 number_of_records = 999
 wad_records = 99
@@ -18,6 +19,7 @@ number_of_awac_stats = 1
 class TestParseWad(unittest.TestCase):
 
     def setUp(self):
+        print "TestParseWad"
         try:        
             path = awac_folder_path + 'test_data.wad'
             parse_wad.ParseWad(path)
@@ -30,6 +32,7 @@ class TestParseWad(unittest.TestCase):
         
 class TestParseWap(unittest.TestCase):
 
+    print "TestParseWap"
     def setUp(self):
         try:        
             parse_wap.load(awac_folder_path + 'test_data.wap')
@@ -42,15 +45,18 @@ class TestParseWap(unittest.TestCase):
 
 class TestAwacStats(unittest.TestCase):
 
+    print "TestAwacStats"
     def setUp(self):
-        try:        
+        try:
+            path = awac_folder_path + 'test_data.wad'
+            parse_wad.ParseWad(path)        
             awac_stats.process_wave_height(awac_folder_path + 'awac_wave_height_df')
         except WindowsError:
             print "Load wap Files failed"
 
     def test_awac_stats(self):
-        wave_height_dataframe = pd.load('wave_h_half_hour_set_test_awac')
+        wave_height_dataframe = pd.load('awac_stats_30min')
         self.assertEqual(len(wave_height_dataframe),number_of_awac_stats)          
         
 if __name__=='__main__':
-    unittest.main()   
+    unittest.main()     
