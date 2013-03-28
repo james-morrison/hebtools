@@ -79,14 +79,11 @@ def join_wad(wad_dict):
         for wad_name, wad_df in wad_dict.iteritems():
             wad_list.append(rename_and_resample(wad_df, wad_name))
         combined_wave_stat = wad_list[0].join(wad_list[1:])
-        combined_wave_stat.save('combined_awacs_resampled_hour')
-
+        combined_wave_stat.save('combined_awacs_resampled_hour')   
+        
     def rename_and_resample(wave_stat_df, name):
         wave_stat_df = wave_stat_df.resample('1H')
-        new_cols = []
-        for x in wave_stat_df.columns:
-            new_cols.append(name + '_' + x)
-        wave_stat_df.columns = new_cols
+        wave_stat_df.columns = [name + '_' + x for x in wave_stat_df.columns]
         return wave_stat_df    
     
     join_df(wad_dict)
