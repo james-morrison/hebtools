@@ -1,21 +1,22 @@
 from datetime import datetime
+from hebtools.common import wave_power
 import glob
 import numpy as np
 import os
 import pandas as pd
 
-his_columns = ['date_time', 'Tp', 'dirp', 'sprp', 'Tz', 'Hm0', 'TI', 'T1', 'Tc',
-           'Tdw2', 'Tdw1', 'Tpc', 'nu','eps','QP','Ss','TRef','TSea','Bat']
+his_columns = ['date_time', 'tp', 'dirp', 'sprp', 'tz', 'hm0', 'ti', 't1', 'tc',
+           'tdw2', 'tdw1', 'tpc', 'nu','eps','qp','ss','tref','tsea','bat']
            
-hiw_columns = ['date_time','% no reception errors','Hmax','Tmax','H(1/10)',
-               'T(1/10)','H1/3','T1/3','Hav','Tav','Eps','#Waves']
+hiw_columns = ['date_time','% no reception errors','hmax','tmax','h(1/10)',
+               't(1/10)','h1/3','t1/3','Hav','Tav','Eps','#Waves']
 
 matching_string_buoy_his = '*$*.his'
 matching_string_computed_his = '*[!$]}*.his'
 matching_string_hiw = '*.hiw'
 file_types = [matching_string_computed_his, matching_string_hiw]
 
-def get_buoy_dataframe(buoy_path, matching_string):
+def get_historical_dataframe(buoy_path, matching_string):
     print "buoy_path", buoy_path
     years = os.listdir(buoy_path)
     df_list = []
@@ -38,13 +39,19 @@ def get_buoy_dataframe(buoy_path, matching_string):
                 df = pd.io.parsers.read_csv(file_name, names = columns)
                 date_times = []
                 for date_time_string in df['date_time'].values:
-                    if date_time_string == 'nan':
+                    if date_time_string != 'nan':
                         date_time = datetime.strptime(date_time_string[:-5],
-                                                      "%Y-%m-%dT%H:%M:%S"))
+                                                      "%Y-%m-%dT%H:%M:%S")
                         date_times.append(date_time)
                     else:
                         date_times.append(datetime(1970,1,1))
                 df.index = pd.DatetimeIndex(date_times)
+                if matching_string[-1] == 's':
+                    wavelen = lambda x: wave_power.get_wavelength(x['tp'])
+                    wav_pow = lambda x: wave_power.calculate(x['hm0']/100,
+                                                             x['tp'])
+                    df['wavelength'] = df.apply(wavelen, axis=1) 
+                    df['wave_power'] = df.apply(wav_pow, axis=1)
                 df_list.append(df)
             except IndexError:
                 print "No file found matching", matching_string
@@ -55,10 +62,13 @@ def get_buoy_dataframe(buoy_path, matching_string):
         thirty_min_resample = large_df.resample('30Min')
         thirty_min_resample.to_excel(buoy_path + '_30_minute_' + \
                                      matching_string[-3:] + '.xlsx' )
+        return thirty_min_resample
 
 
 def load(buoy_path):
+    historical_dfs = []
     for file_type in file_types:
-        get_buoy_dataframe(buoy_path, file_type)
-        
+        historical_dfs.append(get_historical_dataframe(buoy_path, file_type))
+    his_hiw_df = pd.concat(historical_dfs)
+    his_hiw_df.save(os.path.join(buoy_path,'his_hiw_df'))
 
