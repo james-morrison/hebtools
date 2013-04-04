@@ -1,10 +1,10 @@
-import os
+from datetime import datetime
 import glob
 import numpy as np
+import os
 import pandas as pd
-from datetime import datetime
 
-his_columns = ['date_time', 'Tp', 'dirp', 'sprp', 'Tz', 'Hm0', 'TI', 'T1', 'Tc', 
+his_columns = ['date_time', 'Tp', 'dirp', 'sprp', 'Tz', 'Hm0', 'TI', 'T1', 'Tc',
            'Tdw2', 'Tdw1', 'Tpc', 'nu','eps','QP','Ss','TRef','TSea','Bat']
            
 hiw_columns = ['date_time','% no reception errors','Hmax','Tmax','H(1/10)',
@@ -36,14 +36,15 @@ def get_buoy_dataframe(buoy_path, matching_string):
                 else:
                     columns = his_columns
                 df = pd.io.parsers.read_csv(file_name, names = columns)
-                date_time_array = []
+                date_times = []
                 for date_time_string in df['date_time'].values:
                     if date_time_string == 'nan':
-                        date_time_array.append(datetime.strptime(date_time_string[:-5],
-                                                                 "%Y-%m-%dT%H:%M:%S"))
+                        date_time = datetime.strptime(date_time_string[:-5],
+                                                      "%Y-%m-%dT%H:%M:%S"))
+                        date_times.append(date_time)
                     else:
-                        date_time_array.append(datetime(1970,1,1))
-                df.index = pd.DatetimeIndex(date_time_array)
+                        date_times.append(datetime(1970,1,1))
+                df.index = pd.DatetimeIndex(date_times)
                 df_list.append(df)
             except IndexError:
                 print "No file found matching", matching_string

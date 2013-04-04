@@ -4,13 +4,8 @@ import os
 test_data_files = []
 test_dir = 'hebtools\\test\\data'
 for paths,dirs,files in os.walk(test_dir):
-  print paths
-  print dirs
-  print files
   test_data_files += [[paths, [os.path.join(paths,directory) for directory in files]]]
   
-print test_data_files
-
 setup(name='hebtools',
       version='0.1',
       author='James Morrison',
