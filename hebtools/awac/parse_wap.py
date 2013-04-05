@@ -39,8 +39,8 @@ def load(path, name=""):
     else:
         file_name = path
     
-    wap_file = pd.io.parsers.read_csv(file_name, 
-                                      delimiter=r'\s*', names=df_columns)    
+    wap_file = pd.io.parsers.read_csv(file_name, delimiter=r'\s*', 
+                                      names=df_columns)    
     timestamps = wap_file.day.map(str) + ',' + wap_file.month.map(str) + ','\
                  + wap_file.year.map(str) + 'T' + wap_file.hour.map(str) + ':'\
                  + wap_file.minute.map(str) + ':' + wap_file.second.map(str)
@@ -52,15 +52,14 @@ def load(path, name=""):
     date_times_index = pd.DatetimeIndex(date_times)
     wap_file.index = date_times_index
     wap_file = wap_file[wap_file.error_code==0]
-    def wavelength_func(record):
-        return wave_power.calculate_wavelength(record[df_columns[13]])    
-    def wave_power_func(record):
-        return wave_power.calculate(record[df_columns[7]], 
-                                    record[df_columns[13]], 
-                                    record[wavelength_col_name])    
+    depth = 13
+    wavelen = lambda x: wave_power.get_wavelength(x[df_columns[13]],
+                                                        depth)    
+    wav_pow = lambda x: wave_power.calculate(x[df_columns[7]], 
+                                             x[df_columns[13]], depth)    
     wavelength_col_name = 'wavelength'
-    wap_file[wavelength_col_name] = wap_file.apply(wavelength_func, axis=1)
-    wap_file['wave_power'] = wap_file.apply(wave_power_func, axis=1)
+    wap_file[wavelength_col_name] = wap_file.apply(wavelen, axis=1)
+    wap_file['wave_power'] = wap_file.apply(wav_pow, axis=1)
     if name != '':
         wap_file.columns = [name + '_' + x for x in wap_file.columns]
     file_name = file_name[:-4]

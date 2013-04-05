@@ -14,6 +14,7 @@ hiw_columns = ['date_time','% no reception errors','hmax','tmax','h(1/10)',
 matching_string_buoy_his = '*$*.his'
 matching_string_computed_his = '*[!$]}*.his'
 matching_string_hiw = '*.hiw'
+depth = 65
 file_types = [matching_string_computed_his, matching_string_hiw]
 
 def get_historical_dataframe(buoy_path, matching_string):
@@ -47,9 +48,10 @@ def get_historical_dataframe(buoy_path, matching_string):
                         date_times.append(datetime(1970,1,1))
                 df.index = pd.DatetimeIndex(date_times)
                 if matching_string[-1] == 's':
-                    wavelen = lambda x: wave_power.get_wavelength(x['tp'])
+                    wavelen = lambda x: wave_power.get_wavelength(x['tp'], 
+                                                                  depth)
                     wav_pow = lambda x: wave_power.calculate(x['hm0']/100,
-                                                             x['tp'])
+                                                             x['tp'], depth)
                     df['wavelength'] = df.apply(wavelen, axis=1) 
                     df['wave_power'] = df.apply(wav_pow, axis=1)
                 df_list.append(df)
