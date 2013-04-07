@@ -1,4 +1,4 @@
-**hebtools** 
+**hebtools - Time series analysis tools for wave data** 
 
 This python package processes raw **[Datawell
 Waverider](http://www.datawell.nl)** files into a flexible time series. The code
