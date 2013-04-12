@@ -9,7 +9,7 @@ to process pressure data from **[Nortek
 AWAC](http://www.nortek-as.com/en/products/wave-systems/awac)** sensors details
 are described below. 
 
-The code is organised into one main package named **hebtools** with three
+The code is organised into one main package named **hebtools** with four
 subpackages **awac**, **common**, **dwr** and **test**
 
 **dwr** 
