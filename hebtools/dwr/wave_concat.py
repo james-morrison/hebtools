@@ -5,6 +5,9 @@ data producing statistics from the concatenated wave_height_dataframes
 including h_max, h_1_3_mean, h_rms and the time period these statistics cover.
 The statistics are then saved as a Pandas DataFrame and exported to Excel xlsx 
 format. 
+
+@author:James Morrison
+@license: MIT
 """
 
 import os

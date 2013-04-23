@@ -10,8 +10,6 @@ import os
 import sys
 import pandas as pd
 import numpy as np
-import time
-from datetime import datetime
 import logging
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
@@ -19,7 +17,6 @@ time_based_stats = True
 columns = ['start_times', 'end_times', 'h_max', 'h_1_3_mean', 'h_avg', 'h_std']
 
 def arrays_to_df_excel(stats_dict, awac_name, path):
-    index_df = pd.DatetimeIndex(stats_dict['start_times'])
     stats_dfs = []
     for column in columns:
         stats_dfs.append(pd.DataFrame(stats_dict[column], 
@@ -66,7 +63,6 @@ def get_stats_from_df(large_dataframe, series_name, path, half_hourly = True):
     else:
         set_size = 100
         stats_dict['set_size'] = set_size
-        #index = np.arange(set_size,len(large_dataframe),set_size)
         df_list = np.array_split(large_dataframe,np.arange(0,len(large_dataframe),
                        set_size))[1:]
         for subset in df_list:

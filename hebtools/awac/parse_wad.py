@@ -1,7 +1,9 @@
-"""
-Class for reading Nortek wad file with varying white space gaps ( fixed length
-record ) converts the wad data into pandas DataFrame and creates wave heights
-DataFrame using hebtools.common classes  
+""" Module for reading Nortek wad file with varying white space gaps ( fixed 
+length record ) converts the wad data into pandas DataFrame and creates wave 
+heights DataFrame using hebtools.common classes  
+
+@author: James Morrison
+@license: MIT
 """
 
 import os
@@ -14,7 +16,7 @@ from hebtools.common import wave_stats
 
 def iter_loadtxt(filename, delimiter='', skiprows=0, dtype=float):
     """ This function is adapted from Joe Kington's example on Stack Overflow
-    http://stackoverflow.com/questions/8956832/python-out-of-memory-on-large-csv-file-numpy """
+    http://stackoverflow.com/q/8956832/ """
     def iter_func():
         with open(filename, 'r') as infile:
             for _ in range(skiprows):
@@ -54,23 +56,25 @@ class ParseWad:
                    'velocity_beam3_x_up_m_s', 'amplitude_beam1', 
                    'amplitude_beam2', 'amplitude_beam3']
         wad_df.columns = columns
-        date_times = wad_df.apply(lambda x: datetime.strptime(str(int(x['year'])) 
-                                  + ' ' + str(int(x['month'])) + ' ' + 
-                                  str(int(x['day'])) + ' ' + str(int(x['hour'])) 
-                                  + ' ' + str(int(x['minute'])) + ' ' + 
-                                  str(int(x['seconds'])),
-                                  "%Y %m %d %H %M %S"),axis=1)
+        def fmt(x): 
+            return str(int(x))
+        def join_date_time(x):
+            return ' '.join([fmt(x['year']), fmt(x['month']), fmt(x['day']),
+                   fmt(x['hour']), fmt(x['minute']), fmt(x['seconds'])])
+        date_times = wad_df.apply(lambda x: datetime.strptime(join_date_time(x)
+                                  , "%Y %m %d %H %M %S"),axis=1)
         wad_df.index = pd.DatetimeIndex( date_times.values )
-        wad_df = wad_df.drop(['minute', 'hour', 'seconds', 'year', 'month', 'day'], 
-                             axis=1)
+        wad_df = wad_df.drop(['minute', 'hour', 'seconds', 'year', 'month', 
+                              'day'], axis=1)
         wad_df.save(wad_file_path.replace('.','_') + '_df')
         self.pressure_to_wave_height(wad_df)
     
     def pressure_to_wave_height(self, wad_df):
         extrema_df = extrema.GetExtrema(wad_df, 'pressure')
-        wave_stats.WaveStats(extrema_df.raw_disp_with_extrema, 'pressure', error_check=False, 
-                  series_name = 'wave_height_decibar', 
-                  df_file_name = 'awac_wave_height_df')
+        wave_stats.WaveStats(extrema_df.raw_disp_with_extrema, 'pressure', 
+                             error_check=False, 
+                             series_name = 'wave_height_decibar', 
+                             df_file_name = 'awac_wave_height_df')
     
 def join_wad(wad_dict):            
 

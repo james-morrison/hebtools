@@ -1,3 +1,8 @@
+""" Module for calculating wave heights and zero crossing period from 
+DataFrames where the extrema positions have been calculated
+@author: James Morrison
+@license: MIT
+"""
 import numpy as np
 from datetime import datetime
 from matplotlib.mlab import find

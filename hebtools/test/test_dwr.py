@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-author: James Morrison
+""" Module for testing dwr subpackage
+@author: James Morrison
+@license:MIT
 """
 import unittest
 import os

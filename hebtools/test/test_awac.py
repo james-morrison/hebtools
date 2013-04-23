@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
-"""
-author: James Morrison
+""" Module for testing awac package
+@author: James Morrison
+@license: MIT
 """
 import unittest
 import os
 import pandas as pd
-import time
 from hebtools.awac import parse_wad
 from hebtools.awac import parse_wap
 from hebtools.awac import awac_stats
 
-awac_folder_path = os.path.abspath('data/awac') + os.path.sep
+awac_folder_path = os.path.abspath(os.path.join('data','awac')) + os.path.sep
 print awac_folder_path
 number_of_records = 999
 wad_records = 99

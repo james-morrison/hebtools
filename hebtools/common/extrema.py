@@ -1,3 +1,8 @@
+""" Module for detecting extrema ( peaks and troughs ) in displacement signal
+peakdetect functions adapted from http://git.io/D6oxjw
+@author:James Morrison
+@license:MIT
+"""
 import pandas as pd
 import numpy as np
 
@@ -7,7 +12,7 @@ class GetExtrema():
         self.raw_displacements = raw_displacements
         self.get_peaks(column_name)
     
-    def _datacheck_peakdetect(self, x_axis, y_axis):
+    def datacheck_peakdetect(self, x_axis, y_axis):
         if x_axis is None:
             x_axis = list(range(len(y_axis)))
         
@@ -56,7 +61,7 @@ class GetExtrema():
         dump = []   #Used to pop the first hit which almost always is false
            
         # check input data
-        x_axis, y_axis = self._datacheck_peakdetect(x_axis, y_axis)
+        x_axis, y_axis = self.datacheck_peakdetect(x_axis, y_axis)
         # store data length for later use
         length = len(y_axis)
         
@@ -113,9 +118,6 @@ class GetExtrema():
                         if index+lookahead >= length:
                             #end is within lookahead no more peaks can be found
                             break
-                    #else:  #slows shit down this does
-                    #    mn = ahead
-                    #    mnpos = x_axis[np.where(y_axis[index:index+lookahead]==mn)]
         
             except TypeError:
                 print(type(y), y)
@@ -136,11 +138,16 @@ class GetExtrema():
         return [max_peaks, min_peaks]
     
     def get_extrema_timestamps(self, extrema, index):
+        """ Iterates through the positions of the extrema and gets the 
+            timestamps for their positions            
+        """
         indexes = [x[0] for x in extrema]
         timestamps = [index[z] for z in indexes]
         return timestamps
     
     def get_extrema_df(self, extrema_index, index, extrema_type):
+        """ Return a DataFrame based on the extrema supplied
+        """
         extrema_timestamps = self.get_extrema_timestamps(extrema_index, index)
         return pd.DataFrame(np.ones(len(extrema_index), dtype=np.int64), 
                             columns = ['extrema'], 
@@ -150,11 +157,17 @@ class GetExtrema():
         print("start get_peaks")
         y = self.raw_displacements[column_name]
         index = self.raw_displacements.index
-        _max, _min = self.peakdetect(y)
-        maxima_df = self.get_extrema_df(_max, index, 1 )
-        minima_df = self.get_extrema_df(_min, index, -1 )
+        # Calculate peaks and troughs
+        maxima, minima = self.peakdetect(y)
+        # Get a DataFrame with the peaks
+        maxima_df = self.get_extrema_df(maxima, index, 1 )
+        # Get a DataFrame with the troughs
+        minima_df = self.get_extrema_df(minima, index, -1 )
+        # Join peak and troughs together into one single column DataFrame
         extrema_df = pd.concat([maxima_df, minima_df])
         extrema_df.save('extrema_df')
+        # Join extrema to original displacements DataFrame
         raw_disp_with_extrema = self.raw_displacements.join(extrema_df)
+        # Order the output DataFrame by time
         raw_disp_with_extrema = raw_disp_with_extrema.sort()
         self.raw_disp_with_extrema = raw_disp_with_extrema
