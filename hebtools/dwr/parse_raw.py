@@ -55,7 +55,7 @@ def iter_loadtxt(filename, skiprows=0, dtype=np.int):
     data = data.reshape((-1, 4))
     return data
         
-def load(folder_path, year = None):
+def load(folder_path, year = None, month = None):
     
     def get_rounded_timestamps(file_name, raw_array_length):
         """ Takes the length of the raw file and based on the file name gives 
@@ -115,7 +115,9 @@ def load(folder_path, year = None):
         return raw_array, False        
     
     def iterate_over_years(year, folder_path):
-        if year != None:
+        if month != None and year != None:
+            process_month(os.path.join(folder_path,str(year),str(month)))
+        elif year != None:
             iterate_over_months(os.path.join(folder_path,str(year)))
         else:
             year_dirs = os.listdir(folder_path)
@@ -131,9 +133,12 @@ def load(folder_path, year = None):
         for month_dir in month_dirs:
             path = os.path.join(year_folder_path,month_dir)
             if os.path.isdir(path):
-                month_raw_displacements = iterate_over_file_names(path)
-                extrema_df = GetExtrema(month_raw_displacements)
-                raw_plus_std = error_check.check(extrema_df.raw_disp_with_extrema)
-                WaveStats(raw_plus_std)
+                process_month(path)
+                
+    def process_month(month_path):
+        month_raw_displacements = iterate_over_file_names(month_path)
+        extrema_df = GetExtrema(month_raw_displacements)
+        raw_plus_std = error_check.check(extrema_df.raw_disp_with_extrema)
+        WaveStats(raw_plus_std)
               
     iterate_over_years(year, folder_path)
