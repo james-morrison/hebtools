@@ -13,6 +13,8 @@ import pandas as pd
 from datetime import datetime 
 from hebtools.common import extrema
 from hebtools.common import wave_stats
+import logging
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 def iter_loadtxt(filename, delimiter='', skiprows=0, dtype=float):
     """ This function is adapted from Joe Kington's example on Stack Overflow
@@ -35,7 +37,7 @@ def iter_loadtxt(filename, delimiter='', skiprows=0, dtype=float):
 class ParseWad:
     
     def __init__(self, wad_file_path):
-        print os.getcwd()
+        logging.info(os.getcwd())
         wad_file_path = os.path.normpath(wad_file_path)
         if os.path.sep in wad_file_path:
             path = os.path.sep.join(wad_file_path.split(os.path.sep)[:-1])
@@ -94,7 +96,7 @@ def join_wad(wad_dict):
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:        
-        print "No path to wad file supplied"
+        print("No path to wad file supplied")
     else:
         ParseWad(sys.argv[1])
 

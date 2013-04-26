@@ -1,12 +1,15 @@
 from datetime import datetime
 from hebtools.common import wave_power
 import glob
-import numpy as np
 import os
 import pandas as pd
+import logging
+import sys
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
-his_columns = ['date_time', 'tp', 'dirp', 'sprp', 'tz', 'hm0', 'ti', 't1', 'tc',
-           'tdw2', 'tdw1', 'tpc', 'nu','eps','qp','ss','tref','tsea','bat']
+his_columns = ['date_time', 'tp', 'dirp', 'sprp', 'tz', 'hm0', 'ti', 't1', 
+               'tc', 'tdw2', 'tdw1', 'tpc', 'nu','eps','qp','ss','tref','tsea',
+               'bat']
            
 hiw_columns = ['date_time','% no reception errors','hmax','tmax','h(1/10)',
                't(1/10)','h1/3','t1/3','Hav','Tav','Eps','#Waves']
@@ -18,21 +21,21 @@ depth = 65
 file_types = [matching_string_computed_his, matching_string_hiw]
 
 def get_historical_dataframe(buoy_path, matching_string):
-    print "buoy_path", buoy_path
+    logging.info(("buoy_path", buoy_path))
     years = os.listdir(buoy_path)
     df_list = []
     years = [x for x in years if os.path.isdir(os.path.join(buoy_path,x))]
-    print "years", years
+    logging.info(("years", years))
     for year in years:
         year_path = os.path.join(buoy_path, year)
         months = os.listdir(year_path)
         for month in months:
             month_path = os.path.join(year_path,month)
-            print month_path
+            logging.info(month_path)
             os.chdir(month_path)
             try:
                 file_name = glob.glob(matching_string)[0]
-                print file_name
+                logging.info(file_name)
                 if matching_string[-1] == 'w':
                     columns = hiw_columns
                 else:
@@ -56,7 +59,7 @@ def get_historical_dataframe(buoy_path, matching_string):
                     df['wave_power'] = df.apply(wav_pow, axis=1)
                 df_list.append(df)
             except IndexError:
-                print "No file found matching", matching_string
+                logging.info("No file found matching", matching_string)
     if len(df_list) != 0:
         large_df = pd.concat(df_list)
         large_df = large_df.sort_index()       

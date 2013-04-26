@@ -15,6 +15,8 @@ import sys
 import pandas as pd
 import numpy as np
 from collections import OrderedDict
+import logging
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 def filter_maximums(heave_std_series, max_series, multiple, grouped_df):
     max_series[max_series>(heave_std_series*multiple)]
@@ -48,7 +50,7 @@ def get_stats_from_df_groupby(large_dataframe, series_name, path, sigma = 3.5):
     new_cols = ['date_time_index']
     large_dataframe = large_dataframe.sort()
     large_dataframe = large_dataframe[large_dataframe.max_std_factor < sigma]
-    heave_std_multiple = np.sqrt(8*np.log10(len(large_dataframe)))
+    #heave_std_multiple = np.sqrt(8*np.log10(len(large_dataframe)))
     reset_index_df = large_dataframe.reset_index()
     cols = reset_index_df.columns.values
     [new_cols.append(x) for x in cols[1:]]
@@ -103,13 +105,13 @@ def iterate_over_buoy_years(buoy_path):
                                                  wave_height_df])
                     os.chdir('..') 
             os.chdir('..') 
-    print os.getcwd()    
+    logging.info(os.getcwd())
     large_dataframe.save('large_wave_height_df')
     get_stats_from_df_groupby(large_dataframe, "wave_height_cm", buoy_path)
             
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        print "wave_concat module requires path to buoy directory" 
+        print("wave_concat module requires path to buoy directory")
     else:
         iterate_over_buoy_years(sys.argv[1])
     

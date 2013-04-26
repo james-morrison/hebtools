@@ -13,6 +13,9 @@ import os
 import pandas as pd
 from datetime import datetime
 from hebtools.common import wave_power
+import logging
+import sys
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
  
 df_columns = ['month', 'day', 'year', 'hour', 'minute', 'second', 
               'spectrum_type', 'significant_height_Hm0',
@@ -65,5 +68,5 @@ def load(path, name=""):
     file_name = file_name[:-4]
     wap_file.save(file_name + '_wap_df')
     wap_file.to_excel(file_name + '_wap' + '.xlsx')
-    print wap_file
+    logging.info(wap_file)
     

@@ -74,7 +74,7 @@ class WaveStats:
         for subset in df_list:
                 stats_dict[columns[0]].append(subset.max_std_factor.max())
                 stats_dict[columns[1]].append(subset.heave_file_std.max())
-        print len(stats_dict[columns[1]]), len(wave_height_df.index)
+        logging.info((len(stats_dict[columns[1]]), len(wave_height_df.index)))
         stats_df = pd.DataFrame(stats_dict, index=wave_height_df.index)
         return wave_height_df.join(stats_df)
     

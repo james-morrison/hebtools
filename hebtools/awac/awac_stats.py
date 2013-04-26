@@ -83,6 +83,6 @@ def process_wave_height(awac_path):
 
 if __name__ == "__main__":
     if len(sys.argv) == 1: 
-        print "No path to wad file passed"     
+        print("No path to wad file passed")
     else:
        process_wave_height(sys.argv[1])

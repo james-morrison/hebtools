@@ -5,6 +5,9 @@ peakdetect functions adapted from http://git.io/D6oxjw
 """
 import pandas as pd
 import numpy as np
+import logging
+import sys
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 class GetExtrema():
 
@@ -120,10 +123,10 @@ class GetExtrema():
                             break
         
             except TypeError:
-                print(type(y), y)
-                print(type(delta), delta)
-                print(type(mx), mx)
-                print(type(np.Inf), np.Inf)            
+                logging.info(type(y), y)
+                logging.info(type(delta), delta)
+                logging.info(type(mx), mx)
+                logging.info(type(np.Inf), np.Inf)            
         #Remove the false hit on the first value of the y_axis
         try:
             if dump[0]:
@@ -154,7 +157,7 @@ class GetExtrema():
                             index = extrema_timestamps)*extrema_type
     
     def get_peaks(self, column_name):
-        print("start get_peaks")
+        logging.info("start get_peaks")
         y = self.raw_displacements[column_name]
         index = self.raw_displacements.index
         # Calculate peaks and troughs

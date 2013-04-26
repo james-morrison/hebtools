@@ -26,17 +26,19 @@ import numpy as np
 import calendar
 from datetime import datetime
 import os
-import glob
 import sys
+import glob
 import pandas as pd
-import error_check
-import problem_files
+from . import error_check
+from . import problem_files
 from hebtools.common.wave_stats import WaveStats
 from hebtools.common.extrema import GetExtrema
+import logging
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 def iter_loadtxt(filename, skiprows=0, dtype=np.int):
     """ This function is adapted from Joe Kington's example on Stack Overflow
-    http://stackoverflow.com/questions/8956832/python-out-of-memory-on-large-csv-file-numpy """
+    http://stackoverflow.com/q/8956832/ """
     def iter_func():
         with open(filename, 'r') as infile:
             for _ in range(skiprows):
@@ -48,7 +50,7 @@ def iter_loadtxt(filename, skiprows=0, dtype=np.int):
                         try:                        
                             yield dtype(item)
                         except ValueError:
-                            print "Bad Record"
+                            logging.info("Bad Record")
                             yield dtype(0)
 
     data = np.fromiter(iter_func(), dtype=dtype)
@@ -81,21 +83,21 @@ def load(folder_path, year = None, month = None):
         DataFrame after each successfull return from iterate_over_file """
         raw_cols = ['sig_qual','heave','north','west']
         os.chdir(path)
-        problem_files = []
         file_names = glob.glob('*.raw')
         file_names.sort()
         big_raw_array = pd.DataFrame(columns = raw_cols)
         files = []
+        problem_files_arr = []
         for index, filepath in enumerate(file_names):
             raw_array, prob_file = iterate_over_file(filepath, raw_cols)
             if prob_file:
-                problem_files.append(filepath)
+                problem_files_arr.append(filepath)
             else:
                 files.append( raw_array )
         big_raw_array = pd.concat(files)
         big_raw_array.save('raw_buoy_displacement_pandas')  
-        np.save("prob_files",np.array(problem_files))
-        print("finish iterate_over_files")
+        np.save("prob_files",np.array(problem_files_arr))
+        logging.info("finish iterate_over_files")
         return big_raw_array
         
     def iterate_over_file(filepath, raw_cols):
@@ -104,11 +106,11 @@ def load(folder_path, year = None, month = None):
             file_name_df = pd.DataFrame([filepath]*len(raw_array),columns=['file_name'])
             raw_array = raw_array.join(file_name_df)
         except StopIteration:
-            print(filepath, "StopIteration")
+            logging.info(filepath, "StopIteration")
             return None, True
         raw_file_length = len(raw_array)
         if raw_file_length > 2500 or raw_file_length == 0:
-            print("Possibly serious errors in transmission")
+            logging.info("Possibly serious errors in transmission")
             return None, True
         raw_array.index = get_rounded_timestamps(filepath, len(raw_array))
         
@@ -128,7 +130,7 @@ def load(folder_path, year = None, month = None):
             problem_files.concat('.')
         
     def iterate_over_months(year_folder_path):
-        print year_folder_path
+        logging.info(year_folder_path)
         month_dirs = os.listdir(year_folder_path)
         for month_dir in month_dirs:
             path = os.path.join(year_folder_path,month_dir)

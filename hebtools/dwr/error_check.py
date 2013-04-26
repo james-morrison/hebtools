@@ -1,5 +1,7 @@
-import numpy as np
 import pandas as pd
+import logging
+import sys
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 def check(extrema_df, sigma = 4):
      
@@ -11,7 +13,7 @@ def check(extrema_df, sigma = 4):
         """Find values with status signal problem and is a peak or trough,
         then adds a 'signal_error' boolean column to the DataFrame
         """
-        print "start detect_error_waves"
+        logging.info("start detect_error_waves")
         error_wave_mask = extrema_df['sig_qual']>0
         extrema_df['signal_error'] = error_wave_mask
         extrems_plus_errors = extrema_df.sort()
@@ -30,13 +32,11 @@ def check(extrema_df, sigma = 4):
         deviations are also stored in the DataFrame so further comparison can
         be made
         """
-        print "detect_4_by_std"
-        four_times_std_heave_30_mins = []
+        logging.info("detect_4_by_std")
         filtered_displacements = displacements[displacements['signal_error']==0]
-        #filtered_displacements = displacements
         grouped_displacements = filtered_displacements.groupby('file_name')
-        standard_deviations = grouped_displacements['heave','north','west'].std()
-        raw_plus_std = displacements.join(standard_deviations, 
+        std_deviations = grouped_displacements['heave','north','west'].std()
+        raw_plus_std = displacements.join(std_deviations, 
                                                           on='file_name', 
                                                           rsuffix='_file_std')                                
         std_list = {}
