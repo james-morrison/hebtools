@@ -22,11 +22,18 @@ then iterates through the years. To call the module you can use the code below:
     parse_raw("path_to_buoy_data") 
 
 The module then processes the records from the raw files into a pandas DataFrame
-a good format for doing time series analysis. As well as the large DataFrame
-*raw_plus_std* command will also create a smaller *wave_height_dataframe*
-providing details on individual waves extracted from the displacements. An
-optional year parameter can be supplied to process a specific year folder. For
-more details on the approach taken to process the files please [see the
+a good format for doing time series analysis. The main output file is called
+*raw_plus_std* and a smaller *wave_height_dataframe* dataframe is also produced 
+providing details on individual waves extracted from the displacements. 
+
+Interrogating these output files in the DataFrame format requires a little 
+knowledge of the pandas [data structures and 
+functionality](http://pandas.pydata.org/pandas-docs/stable/10min.html). For
+example queries and plots inline from a real dataset see this [example IPython
+Notebook](http://nbviewer.ipython.org/urls/bitbucket.org/jamesmorrison/hebtools/raw/d122ce3b6a3239a9aa928902613171f3fdecb465/outputs/Visualising_displacement_data.ipynb)
+
+An optional year parameter can be supplied to process a specific year folder. 
+For more details on the approach taken to process the files please [see the
 wiki](https://bitbucket.org/jamesmorrison/hebtools/wiki/Home) 
 
 Masking and calculation of the standard deviation of displacement values takes
