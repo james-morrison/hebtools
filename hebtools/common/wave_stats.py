@@ -82,14 +82,21 @@ class WaveStats:
         """ wave heights are calculated from peak to trough """        
         logging.info("start calc_stats")        
         extrema = self.raw_disp
+        #From the extrema column of the dataframe, extract all non null values
         extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
+        # Calculate the difference between adjacent extrema
         differences = np.ediff1d(np.array(extrema[column_name]))
+        # Pick the negative difference, the downward slope of the wave
         sub_zero_diff = differences<0
+        # Get the timestamps of the difference ( the peak )
         wave_height_timestamps = extrema.index[sub_zero_diff]
+        # Remove the negative sign giving a positive wave height 
         wave_heights = np.absolute(differences[sub_zero_diff])
+        # Bring timestamps and wave heights together into one dataframe
         wave_height_df = pd.DataFrame(wave_heights, columns=[series_name],
                                       index = wave_height_timestamps)
         logging.info(wave_height_df)
+        # If the data is from a Datawell buoy add the original raw filename
         if error_check:
             file_names = extrema.file_name[sub_zero_diff]
             file_name_df = pd.DataFrame(file_names, columns=['file_name'], 
