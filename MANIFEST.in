@@ -1,0 +1,4 @@
+include hebtools/test/data/waverider/2005/July/*.raw
+include hebtools/test/data/waverider/2005/July/*.his
+include hebtools/test/data/waverider/2005/July/*.hiw
+include hebtools/test/data/awac/*
