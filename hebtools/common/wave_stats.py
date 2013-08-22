@@ -102,6 +102,7 @@ class WaveStats:
                                       index = wave_height_timestamps)
         p_to_p_period_df.index = wave_height_timestamps[:-1]
         p_to_p_period_df = p_to_p_period_df/1000000000
+        p_to_p_period_df[p_to_p_period_df>30]=np.nan
         wave_height_df = wave_height_df.join(p_to_p_period_df)
         p_to_p_period_df.to_pickle('p_to_p_period_df')
         logging.info(wave_height_df)

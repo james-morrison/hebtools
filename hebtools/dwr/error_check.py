@@ -44,7 +44,7 @@ def check(extrema_df, sigma = 4):
            std_list = compare_std(raw_plus_std, direction)
         disp_more_than_4_std = std_list[0] + std_list[1] + std_list[2]
         raw_plus_std['>4*std'] = disp_more_than_4_std
-        raw_plus_std.save('raw_plus_std')
+        raw_plus_std.to_pickle('raw_plus_std')
         return raw_plus_std
         
     def compare_factors(main_factor, second_factor, third_factor):
@@ -67,7 +67,7 @@ def check(extrema_df, sigma = 4):
         combined_factors = pd.concat(factors)
         combined_factors.name = 'max_std_factor'
         raw_plus_std = raw_plus_std.join(combined_factors)
-        raw_plus_std.save('raw_plus_std')
+        raw_plus_std.to_pickle('raw_plus_std')
         return raw_plus_std
         
     displacements = detect_error_waves(extrema_df)

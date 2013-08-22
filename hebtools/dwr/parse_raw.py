@@ -95,7 +95,7 @@ def load(folder_path, year = None, month = None):
             else:
                 files.append( raw_array )
         big_raw_array = pd.concat(files)
-        big_raw_array.save('raw_buoy_displacement_pandas')  
+        big_raw_array.to_pickle('raw_buoy_displacement_pandas')  
         np.save("prob_files",np.array(problem_files_arr))
         logging.info("finish iterate_over_files")
         return big_raw_array
