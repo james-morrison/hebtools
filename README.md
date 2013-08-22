@@ -19,14 +19,21 @@ subfolders must be passed to the load method of the **parse_raw** module which
 then iterates through the years. To call the module you can use the code below: 
 
     from hebtools.dwr import parse_raw 
-    parse_raw("path_to_buoy_data") 
+    parse_raw.load("path_to_buoy_data") 
 
 The module then processes the records from the raw files into a pandas DataFrame
-a good format for doing time series analysis. As well as the large DataFrame
-*raw_plus_std* command will also create a smaller *wave_height_dataframe*
-providing details on individual waves extracted from the displacements. An
-optional year parameter can be supplied to process a specific year folder. For
-more details on the approach taken to process the files please [see the
+a good format for doing time series analysis. The main output file is called
+*raw_plus_std* and a smaller *wave_height_dataframe* dataframe is also produced 
+providing details on individual waves extracted from the displacements. 
+
+Interrogating these output files in the DataFrame format requires a little 
+knowledge of the pandas [data structures and 
+functionality](http://pandas.pydata.org/pandas-docs/stable/10min.html). For
+example queries and plots inline from a real dataset see this [example IPython
+Notebook](http://nbviewer.ipython.org/urls/bitbucket.org/jamesmorrison/hebtools/raw/d122ce3b6a3239a9aa928902613171f3fdecb465/outputs/Visualising_displacement_data.ipynb)
+
+An optional year and month parameter can be supplied to process a specific year, month folder. 
+For more details on the approach taken to process the files please [see the
 wiki](https://bitbucket.org/jamesmorrison/hebtools/wiki/Home) 
 
 Masking and calculation of the standard deviation of displacement values takes
@@ -82,11 +89,17 @@ check that the waves conform to accepted statistical distributions.
 
 ![std_dev_plot.png](https://bitbucket.org/jamesmorrison/hebtools/raw/ac7de53a961a9114031c88210153760f4ff278ab/images/std_dev_plot.png)
 
+The plot above 
+
+*Background*
 
 The project was developed with data received from Waverider MKII and MKIII buoys
 with RFBuoy v2.1.27 producing the raw files. The AWAC was a 1MHz device and
 Storm v1.14 produced the wad files. The code was developed with the assistance
 of the [Hebridean Marine Energy Futures](http://hebmarine.com) project. 
+
+Some more information on the data acquisition and overall workflow can be [found
+on this poster](http://www.academia.edu/3231377/hebtools_Time_series_analysis_tools_for_wave_sensor_data)
 
 Requires: 
 
