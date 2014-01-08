@@ -30,7 +30,7 @@ Interrogating these output files in the DataFrame format requires a little
 knowledge of the pandas [data structures and 
 functionality](http://pandas.pydata.org/pandas-docs/stable/10min.html). For
 example queries and plots inline from a real dataset see this [example IPython
-Notebook](https://bitbucket.org/jamesmorrison/hebtools/raw/2ec0a20e8cb6627429ee408e0c3d90e958058190/outputs/Visualising_displacement_data.ipynb)
+Notebook](http://nbviewer.ipython.org/urls/bitbucket.org/jamesmorrison/hebtools/raw/d18d0e8390202b2f04a2e591c2dc3759a80f3f42/outputs/Visualising_displacement_data.ipynb?create=1)
 An optional year and month parameter can be supplied to process a specific year, month folder. 
 For more details on the approach taken to process the files please [see the
 wiki](https://bitbucket.org/jamesmorrison/hebtools/wiki/Home) 
