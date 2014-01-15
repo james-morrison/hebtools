@@ -53,14 +53,6 @@ class WaveStats:
             df = df[df[col]==comparison_val]
         return df
         
-    def bad_subset(self, subset):
-        #if np.sum(subset['signal_error']==True) > 0:
-        #    return True
-        #elif np.sum(subset['>4*std']==True) > 0:
-        #    return True
-        #else:
-            return False
-        
     def check_wave_height_dataframe(self, wave_height_df):
         """Filter wave heights on the basis of any true values occuring for 
         signal_error or >4*std, grab the time index of a wave height
