@@ -78,7 +78,7 @@ each buoy. The module uses data from the monthly *wave_height_dataframe* files,
 statistics are then calculated on the wave sets and then exported as an Excel
 workbook ( .xlsx file ). This module needs to be passed a path to a buoy data
 directory, the set size used for statistic calculation are based upon on the 
-duration if the raw files ( usually 30 minutes ). 
+duration of the raw files ( usually 30 minutes ). 
 
 Statistical terms are calculated (Hrms,Hstd,Hmean where H is the wave heights )
 and compared to the standard deviation of the heave displacement ( Hv_std ) to 
@@ -88,7 +88,9 @@ check that the waves conform to accepted statistical distributions.
 
 ![std_dev_plot.png](https://bitbucket.org/jamesmorrison/hebtools/raw/ac7de53a961a9114031c88210153760f4ff278ab/images/std_dev_plot.png)
 
-The plot above 
+The plot above compares wave height against the wave height divided by the 
+standard deviation of the displacement signal, any values above 4 are 
+considered to be statistically unrealistic for linear wave theory.
 
 *Background*
 
