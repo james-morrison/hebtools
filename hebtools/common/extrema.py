@@ -168,7 +168,7 @@ class GetExtrema():
         minima_df = self.get_extrema_df(minima, index, -1 )
         # Join peak and troughs together into one single column DataFrame
         extrema_df = pd.concat([maxima_df, minima_df])
-        extrema_df.save('extrema_df')
+        extrema_df.to_pickle('extrema_df')
         # Join extrema to original displacements DataFrame
         raw_disp_with_extrema = self.raw_displacements.join(extrema_df)
         # Order the output DataFrame by time
