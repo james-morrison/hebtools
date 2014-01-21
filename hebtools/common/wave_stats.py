@@ -46,7 +46,7 @@ class WaveStats:
         zero_cross_t_stamps = [get_datetime(x) for x in zero_cross_t_stamps]
         df = pd.DataFrame(zero_upcross_periods, 
                           index = zero_cross_t_stamps[:-1])
-        df.save('zero_crossing_dataframe')    
+        df.to_pickle('zero_crossing_dataframe')    
         
     def mask_df(self, df, columns, comparison_val = False):
         for col in columns:
