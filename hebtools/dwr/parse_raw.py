@@ -142,5 +142,7 @@ def load(folder_path, year = None, month = None):
         extrema_df = GetExtrema(month_raw_displacements)
         raw_plus_std = error_check.check(extrema_df.raw_disp_with_extrema)
         WaveStats(raw_plus_std)
-              
+
+    starting_path = os.path.abspath('.') 
     iterate_over_years(year, folder_path)
+    os.chdir(starting_path)
