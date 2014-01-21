@@ -2,7 +2,7 @@
 
 This python package processes raw **[Datawell
 Waverider](http://www.datawell.nl)** files into a flexible time series. The code
-allows easier calculation of statistics from the displacment data, more
+allows easier calculation of statistics from the displacement data, more
 sophisticated masking of improbable data and the ability to deal with larger
 timeseries than is available from existing software. Similar code is also used
 to process pressure data from **[Nortek
@@ -19,7 +19,13 @@ subfolders must be passed to the load method of the **parse_raw** module which
 then iterates through the years. To call the module you can use the code below: 
 
     from hebtools.dwr import parse_raw 
-    parse_raw.load("path_to_buoy_data") 
+    parse_raw.load("path_to_buoy_folder")
+    
+    # Parse a specific year 
+    parse_raw.load("path_to_buoy_folder","2005")
+    
+    # Parse a specific month
+    parse_raw.load("path_to_buoy_folder","2005","July")
 
 The module then processes the records from the raw files into a pandas DataFrame
 a good format for doing time series analysis. The main output file is called
