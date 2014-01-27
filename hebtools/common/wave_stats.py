@@ -91,13 +91,13 @@ class WaveStats:
         wave_heights = np.absolute(differences[sub_zero_diff])
         # Bring timestamps and wave heights together into one dataframe
         wave_height_df = pd.DataFrame(wave_heights, columns=[series_name],
-                                      index = wave_height_timestamps)
+                                      index = wave_height_timestamps)                                      
         p_to_p_period_df.index = wave_height_timestamps[:-1]
         p_to_p_period_df = p_to_p_period_df/1000000000
+        # Exclude periods greater than 30 seconds as that is in excess of
+        # maximum size the moored wave buoys can record
         p_to_p_period_df[p_to_p_period_df>30]=np.nan
         wave_height_df = wave_height_df.join(p_to_p_period_df)
-        p_to_p_period_df.to_pickle('p_to_p_period_df')
-        logging.info(wave_height_df)
         # If the data is from a Datawell buoy add the original raw filename
         if error_check:
             file_names = extrema.file_name[sub_zero_diff]
