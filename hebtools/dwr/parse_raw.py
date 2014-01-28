@@ -80,12 +80,11 @@ def load(folder_path, year = None, month = None):
 
     def iterate_over_file_names(path):
         """ Iterates over one months worth of raw files, appending to a pandas
-        DataFrame after each successfull return from iterate_over_file """
+        DataFrame after each successful return from iterate_over_file """
         raw_cols = ['sig_qual','heave','north','west']
         os.chdir(path)
         file_names = glob.glob('*.raw')
         file_names.sort()
-        big_raw_array = pd.DataFrame(columns = raw_cols)
         files = []
         problem_files_arr = []
         for index, filepath in enumerate(file_names):
@@ -94,11 +93,12 @@ def load(folder_path, year = None, month = None):
                 problem_files_arr.append(filepath)
             else:
                 files.append( raw_array )
-        big_raw_array = pd.concat(files)
-        big_raw_array.to_pickle('raw_buoy_displacement_pandas')  
-        np.save("prob_files",np.array(problem_files_arr))
+        displacements_df = pd.concat(files)
+        displacements_df.to_hdf('buoy_data.h5','displacements', format='t',
+                                append=False, complib='blosc', complevel=9)
+        pd.DataFrame(problem_files_arr).to_hdf('buoy_data.h5', 'problem_files')
         logging.info("finish iterate_over_files")
-        return big_raw_array
+        return displacements_df
         
     def iterate_over_file(filepath, raw_cols):
         try:
