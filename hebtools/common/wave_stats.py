@@ -105,5 +105,6 @@ class WaveStats:
                                     index = wave_height_timestamps)
             wave_height_df = wave_height_df.join(file_name_df)    
             wave_height_df = self.check_wave_height_dataframe(wave_height_df)
-        wave_height_df.save(df_file_name)
+        wave_height_df.to_hdf('buoy_data.h5', 'wave_height', format='t',
+                              append=False, complib='blosc', complevel=9)
         logging.info(wave_height_df.describe())
