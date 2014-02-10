@@ -110,12 +110,13 @@ on this poster](http://www.academia.edu/3231377/hebtools_Time_series_analysis_to
 
 Requires: 
 
-- [Python 2.7](http://python.org/download/) ( developed and tested with 2.7.3 ) 
+- [Python 2.7](http://python.org/download/) ( developed and tested with 2.7.6 ) 
 - [numpy](http://numpy.scipy.org) ( developed and tested with 1.6.2 ) 
-- [pandas](http://pandas.pydata.org) ( minimum 0.10.1 ) 
+- [pandas](http://pandas.pydata.org) ( minimum 0.12.0 ) 
 - [matplotlib](http://matplotlib.org) ( developed and tested with 1.2.0 ) 
 - [openpyxl](http://bitbucket.org/ericgazoni/openpyxl/src) ( developed and
-  tested with 1.6.1 ) 
+  tested with 1.6.1 )
+- [PyTables](http://pytables.org) ( developed and tested with 3.0.0 )
 
 Almost all of the above requirements can be satisfied with a Python distribution
 like [Anaconda CE](http://continuum.io/downloads.html). 
