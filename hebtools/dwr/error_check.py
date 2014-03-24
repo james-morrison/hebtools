@@ -23,27 +23,18 @@ def check(extrema_df, sigma = 4):
         return raw_plus_std[direction].abs() > \
                (raw_plus_std[direction + suf] * sigma)
     
-    def detect_4_by_std(sigma, displacements):
+    def calculate_std(sigma, displacements):
         """This function groups the displacements in the DataFrame by filename
         getting the standard deviation for each displacement (heave,north,west) 
-        The displacements are then compared against 4 times 
-        their standard deviation and any records exceeding this comparison for 
-        any displacement are given a True value for >4*std column, the standard
-        deviations are also stored in the DataFrame so further comparison can
-        be made
+        , the standard deviations are also stored in the DataFrame so further 
+        comparison can be made
         """
-        logging.info("detect_4_by_std")
+        logging.info("calculate_std")
         filtered_displacements = displacements[displacements['signal_error']==0]
         grouped_displacements = filtered_displacements.groupby('file_name')
         std_deviations = grouped_displacements['heave','north','west'].std()
-        raw_plus_std = displacements.join(std_deviations, 
-                                                          on='file_name', 
-                                                          rsuffix='_file_std')                                
-        std_list = {}
-        for direction in directions:
-           std_list = compare_std(raw_plus_std, direction)
-        disp_more_than_4_std = std_list[0] + std_list[1] + std_list[2]
-        raw_plus_std['>4*std'] = disp_more_than_4_std
+        raw_plus_std = displacements.join(std_deviations, on='file_name', 
+                                          rsuffix='_file_std')                                
         raw_plus_std.to_pickle('raw_plus_std')
         return raw_plus_std
         
@@ -71,5 +62,5 @@ def check(extrema_df, sigma = 4):
         return raw_plus_std
         
     displacements = detect_error_waves(extrema_df)
-    raw_plus_std = detect_4_by_std(sigma, displacements)
+    raw_plus_std = calculate_std(sigma, displacements)
     return calc_std_factor(raw_plus_std)
