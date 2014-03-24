@@ -92,7 +92,7 @@ def load(folder_path, year = None, month = None):
             if prob_file:
                 problem_files_arr.append(filepath)
             else:
-                files.append( raw_array 
+                files.append(raw_array) 
         displacements_df = pd.concat(files)
         buoy_data = pd.HDFStore('buoy_data.h5', complib='blosc', complevel=9)
         buoy_data.put('displacements', displacements_df, append=False,
