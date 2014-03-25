@@ -76,7 +76,6 @@ class WaveStats:
         extrema = self.raw_disp
         #From the extrema column of the dataframe, extract all non null values
         extrema = extrema.ix[np.invert(np.isnan(extrema['extrema']))]
-        print extrema.head()
         peak_to_peak_period = np.diff(extrema[extrema['extrema']==1].index.values)
         p_to_p_period_df = pd.DataFrame(dict(period=peak_to_peak_period), 
                                         dtype='float')
@@ -107,4 +106,3 @@ class WaveStats:
             wave_height_df = self.check_wave_height_dataframe(wave_height_df)
         wave_height_df.to_hdf('buoy_data.h5', 'wave_height', format='t',
                               append=False, complib='blosc', complevel=9)
-        logging.info(wave_height_df.describe())
