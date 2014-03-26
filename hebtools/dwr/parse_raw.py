@@ -67,6 +67,11 @@ def load(folder_path, year = None, month = None):
                                       "%Y-%m-%dT%Hh%M")
         if raw_array_length < 2300:
             time_interval = 0.78125
+            """ In cases where the number of records is more than expected for the 
+                standard time interval calculate the appropriate interval.
+            """
+            if raw_array_length > time_interval * ((30 - (date_time.minute % 30)) * 60):
+                time_interval = ((30 - (date_time.minute % 30)) * 60) / float(raw_array_length)
         else:
             time_interval = 1800/float(raw_array_length)
         unix_timestamp = calendar.timegm(date_time.timetuple())
@@ -109,6 +114,12 @@ def load(folder_path, year = None, month = None):
             raw_array = raw_array.join(file_name_df)
         except StopIteration:
             logging.info(filepath, "StopIteration")
+            return None, True
+        except ValueError:
+            logging.info(filepath, "Possibly empty file")
+            return None, True
+        except TypeError:
+            logging.info(filepath, "TypeError")
             return None, True
         raw_file_length = len(raw_array)
         if raw_file_length > 2500 or raw_file_length == 0:
